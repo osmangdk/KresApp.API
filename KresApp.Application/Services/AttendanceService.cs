@@ -36,8 +36,27 @@ public class AttendanceService
 
     public async Task CreateBulkAsync(CreateBulkAttendanceDto dto)
     {
-        var entities = dto.Records.Select(r => new Attendance(r.ChildId, dto.Date, r.Status));
-        await _repo.AddRangeAsync(entities);
+        var existingRecords = await _repo.GetByDateAsync(dto.Date);
+        var toAdd = new List<Attendance>();
+        
+        foreach (var record in dto.Records)
+        {
+            var existing = existingRecords.FirstOrDefault(x => x.ChildId == record.ChildId);
+            if (existing != null)
+            {
+                existing.UpdateStatus(record.Status);
+                await _repo.UpdateAsync(existing);
+            }
+            else
+            {
+                toAdd.Add(new Attendance(record.ChildId, dto.Date, record.Status));
+            }
+        }
+        
+        if (toAdd.Any())
+        {
+            await _repo.AddRangeAsync(toAdd);
+        }
     }
 
     public async Task<List<AttendanceDto>> GetByChildAsync(Guid childId, string? month)

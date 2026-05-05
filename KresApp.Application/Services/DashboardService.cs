@@ -24,11 +24,15 @@ public class DashboardService
         var children = await _childRepo.GetByFilter(userId, role);
         int totalStudents = children.Count;
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Turkey is UTC+3. Using UtcNow.AddHours(3) to ensure correct "today" regardless of server location.
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(3));
         var attendanceToday = await _attendanceRepo.GetByDateAsync(today, null); 
 
         var childIds = children.Select(c => c.Id).ToList();
-        int presentToday = attendanceToday.Count(a => childIds.Contains(a.ChildId) && a.Status == AttendanceStatus.Present);
+        // Count both Present and Late as "Present" for the dashboard summary
+        int presentToday = attendanceToday.Count(a => 
+            childIds.Contains(a.ChildId) && 
+            (a.Status == AttendanceStatus.Present || a.Status == AttendanceStatus.Late));
 
         var pendingPayments = await _paymentRepo.GetByFilterAsync(status: PaymentStatus.Pending);
         var overduePayments = await _paymentRepo.GetByFilterAsync(status: PaymentStatus.Overdue);
