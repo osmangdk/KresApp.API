@@ -1,0 +1,6 @@
+@KresApp.API_HostAddress = http://localhost:5238
+
+GET {{KresApp.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/mobile/" />
+  <Folder Name="/mobile/kres_mobile/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="KresApp.API/Dockerfile" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="KresApp.API/KresApp.API.csproj" />
+    <Project Path="KresApp.Application/KresApp.Application.csproj" Id="24b30bae-e276-43ac-b3c2-62f0033cf497" />
+    <Project Path="KresApp.Domain/KresApp.Domain.csproj" Id="30956b3d-7d6f-4aba-9ed9-71bd0e7f6300" />
+    <Project Path="KresApp.Infrastructure/KresApp.Infrastructure.csproj" Id="089afa33-1a88-4ff0-a708-85da214d55bc" />
+    <Project Path="KresApp.Persistence/KresApp.Persistence.csproj" Id="44af5d1f-2a8f-4279-9dec-c5910e6519f2" />
+  </Folder>
+</Solution>
