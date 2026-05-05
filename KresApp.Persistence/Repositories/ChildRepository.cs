@@ -37,7 +37,7 @@ public class ChildRepository : IChildRepository
     public async Task AddAsync(Child child)
     {
         await _db.Children.AddAsync(child);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(); 
     }
 
     public async Task<Child?> GetByIdAsync(Guid id)
