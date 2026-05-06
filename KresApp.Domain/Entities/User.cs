@@ -1,4 +1,4 @@
-﻿using KresApp.Domain.Enums;
+using KresApp.Domain.Enums;
 
 namespace KresApp.Domain.Entities;
 
@@ -35,5 +35,15 @@ public class User
     {
         Name = name;
         Phone = phone;
+    }
+
+    public void UpdateEmail(string email)
+    {
+        Email = email;
+    }
+
+    public void UpdateRole(UserRole role)
+    {
+        Role = role;
     }
 }

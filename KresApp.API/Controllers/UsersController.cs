@@ -7,7 +7,7 @@ using KresApp.Domain.Enums;
 namespace KresApp.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 [Authorize(Roles = "SuperAdmin")]
 public class UsersController : ControllerBase
 {
@@ -31,6 +31,17 @@ public class UsersController : ControllerBase
         try {
             await _service.Create(dto);
             return Ok(new { message = "Kullanıcı başarıyla oluşturuldu." });
+        } catch (Exception ex) {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserDto dto)
+    {
+        try {
+            await _service.Update(id, dto);
+            return Ok(new { message = "Kullanıcı başarıyla güncellendi." });
         } catch (Exception ex) {
             return BadRequest(new { message = ex.Message });
         }

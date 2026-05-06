@@ -43,6 +43,27 @@ public class UserService
         await _repo.AddAsync(user);
     }
 
+    public async Task Update(Guid id, UpdateUserDto dto)
+    {
+        var user = await _repo.GetByIdAsync(id);
+        if (user == null) throw new Exception("Kullanıcı bulunamadı.");
+
+        var existingEmail = await _repo.GetByEmail(dto.Email);
+        if (existingEmail != null && existingEmail.Id != id)
+            throw new Exception("Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.");
+
+        user.UpdateProfile(dto.Name, dto.Phone);
+        user.UpdateEmail(dto.Email);
+        user.UpdateRole(dto.Role);
+        
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+        {
+            user.ChangePassword(_hasher.Hash(dto.Password));
+        }
+
+        await _repo.UpdateAsync(user);
+    }
+
     public async Task Delete(Guid id)
     {
         await _repo.DeleteAsync(id);
