@@ -30,6 +30,8 @@ builder.Services.AddScoped<ISchoolBellRepository, SchoolBellRepository>();
 builder.Services.AddScoped<ILearningOutcomeRepository, LearningOutcomeRepository>();
 builder.Services.AddScoped<IMedicationRepository, MedicationRepository>();
 builder.Services.AddScoped<IGalleryRepository, GalleryRepository>();
+builder.Services.AddScoped<IVaccinationRepository, VaccinationRepository>();
+builder.Services.AddScoped<IChildHealthRepository, ChildHealthRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
@@ -50,6 +52,8 @@ builder.Services.AddScoped<SchoolBellService>();
 builder.Services.AddScoped<LearningOutcomeService>();
 builder.Services.AddScoped<MedicationService>();
 builder.Services.AddScoped<GalleryService>();
+builder.Services.AddScoped<VaccinationService>();
+builder.Services.AddScoped<ChildHealthService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>

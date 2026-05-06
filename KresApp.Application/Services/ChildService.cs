@@ -33,7 +33,7 @@ public class ChildService
     {
         var child = new Child(dto.Name, dto.ParentId, dto.ClassId, dto.BirthDate);
         child.UpdateProfile(dto.Name, dto.BirthDate, dto.BloodType, dto.ClassId,
-                            dto.ParentName, dto.ParentPhone, dto.SecondaryPhone);
+                            dto.ParentName, dto.ParentPhone, dto.SecondaryPhone, null, null, null);
         await _repo.AddAsync(child);
         return child.Id;
     }
@@ -52,7 +52,7 @@ public class ChildService
         var child = await _repo.GetByIdAsync(id);
         if (child == null) throw new Exception("Child not found");
 
-        child.UpdateProfile(dto.Name, dto.BirthDate, dto.BloodType, dto.ClassId, dto.ParentName, dto.ParentPhone, dto.SecondaryPhone);
+        child.UpdateProfile(dto.Name, dto.BirthDate, dto.BloodType, dto.ClassId, dto.ParentName, dto.ParentPhone, dto.SecondaryPhone, dto.Gender, dto.Weight, dto.Height);
         await _repo.UpdateAsync(child);
     }
 
@@ -138,6 +138,7 @@ public class ChildService
         {
             Id = child.Id,
             Name = child.Name,
+            ParentId = child.ParentId,
             BirthDate = child.BirthDate,
             ClassId = child.ClassId,
             ClassName = className,
@@ -147,6 +148,9 @@ public class ChildService
             ParentName = child.ParentName,
             ParentPhone = child.ParentPhone,
             SecondaryPhone = child.SecondaryPhone,
+            Gender = child.Gender,
+            Weight = child.Weight,
+            Height = child.Height,
             EnrollmentDate = child.EnrollmentDate
         };
     }

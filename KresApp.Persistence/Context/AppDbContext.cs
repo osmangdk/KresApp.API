@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
     public DbSet<Medication> Medications => Set<Medication>();
     public DbSet<MedicationLog> MedicationLogs => Set<MedicationLog>();
     public DbSet<GalleryItem> GalleryItems => Set<GalleryItem>();
+    public DbSet<Vaccination> Vaccinations => Set<Vaccination>();
+    public DbSet<ChildHealthRecord> ChildHealthRecords => Set<ChildHealthRecord>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -64,6 +66,12 @@ public class AppDbContext : DbContext
                 .HasDefaultValue("Tamamlanmadı");
             eb.Property(x => x.MedicalNotes)
                 .HasColumnName("MedicalNotes");
+            eb.Property(x => x.Gender)
+                .HasColumnName("Gender");
+            eb.Property(x => x.Weight)
+                .HasColumnName("Weight");
+            eb.Property(x => x.Height)
+                .HasColumnName("Height");
             eb.Property(x => x.ParentName)
                 .HasColumnName("ParentName")
                 .HasDefaultValue("");
@@ -218,6 +226,22 @@ public class AppDbContext : DbContext
             eb.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedByUserId);
             eb.HasOne(x => x.Class).WithMany().HasForeignKey(x => x.ClassId);
             eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
+        });
+
+        modelBuilder.Entity<Vaccination>(eb => {
+            eb.ToTable("Vaccinations");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany(c => c.Vaccinations).HasForeignKey(x => x.ChildId);
+        });
+
+        modelBuilder.Entity<ChildHealthRecord>(eb => {
+            eb.ToTable("ChildHealthRecords");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany(c => c.HealthRecords).HasForeignKey(x => x.ChildId);
         });
     }
 }

@@ -77,9 +77,15 @@ public class ChildrenController : ControllerBase
     /// Çocuğun alerjilerini toplu güncelle (mevcut alerjileri siler, yeniden oluşturur)
     /// </summary>
     [HttpPut("{id}/allergies")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,Parent")]
     public async Task<IActionResult> UpdateAllergies(Guid id, [FromBody] UpdateAllergiesDto dto)
     {
+        if (GetUserRole() == "Parent")
+        {
+            var child = await _service.GetByIdAsync(id);
+            if (child == null || child.ParentId != GetUserId()) return Forbid();
+        }
+
         try {
             await _service.UpdateAllergiesAsync(id, dto);
             return NoContent();
@@ -90,9 +96,15 @@ public class ChildrenController : ControllerBase
     /// Çocuğa tek bir alerji ekle
     /// </summary>
     [HttpPost("{id}/allergies")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,Parent")]
     public async Task<IActionResult> AddAllergy(Guid id, [FromBody] ChildAllergyDto dto)
     {
+        if (GetUserRole() == "Parent")
+        {
+            var child = await _service.GetByIdAsync(id);
+            if (child == null || child.ParentId != GetUserId()) return Forbid();
+        }
+
         try {
             var result = await _service.AddAllergyAsync(id, dto);
             return Ok(result);
@@ -103,9 +115,15 @@ public class ChildrenController : ControllerBase
     /// Tek bir alerji kaydını sil
     /// </summary>
     [HttpDelete("{id}/allergies/{allergyId}")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,Parent")]
     public async Task<IActionResult> DeleteAllergy(Guid id, Guid allergyId)
     {
+        if (GetUserRole() == "Parent")
+        {
+            var child = await _service.GetByIdAsync(id);
+            if (child == null || child.ParentId != GetUserId()) return Forbid();
+        }
+
         try {
             await _service.DeleteAllergyAsync(allergyId);
             return NoContent();

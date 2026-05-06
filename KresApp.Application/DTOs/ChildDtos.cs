@@ -9,6 +9,9 @@ public class UpdateChildDto
     public string ParentName { get; set; } = null!;
     public string ParentPhone { get; set; } = null!;
     public string? SecondaryPhone { get; set; }
+    public string? Gender { get; set; }
+    public double? Weight { get; set; }
+    public double? Height { get; set; }
 }
 
 // Tek bir alerji kaydı eklemek/güncellemek için
@@ -41,6 +44,7 @@ public class ChildDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
+    public Guid ParentId { get; set; }
     public DateOnly? BirthDate { get; set; }
     public Guid ClassId { get; set; }
     public string ClassName { get; set; } = null!;
@@ -50,5 +54,8 @@ public class ChildDto
     public string ParentName { get; set; } = null!;
     public string ParentPhone { get; set; } = null!;
     public string? SecondaryPhone { get; set; }
+    public string? Gender { get; set; }
+    public double? Weight { get; set; }
+    public double? Height { get; set; }
     public DateOnly EnrollmentDate { get; set; }
 }

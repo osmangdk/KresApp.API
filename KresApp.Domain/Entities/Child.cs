@@ -11,10 +11,15 @@ public class Child
     public Guid ClassId { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public string BloodType { get; private set; } = "Tamamlanmadı";
+    public string? Gender { get; private set; } // Erkek, Kız
+    public double? Weight { get; private set; } // kg
+    public double? Height { get; private set; } // cm
     public string? MedicalNotes { get; private set; }
 
     // Navigation - 1:N ilişki
     public ICollection<ChildAllergy> Allergies { get; private set; } = new List<ChildAllergy>();
+    public ICollection<Vaccination> Vaccinations { get; private set; } = new List<Vaccination>();
+    public ICollection<ChildHealthRecord> HealthRecords { get; private set; } = new List<ChildHealthRecord>();
     public string ParentName { get; private set; } = string.Empty;
     public string ParentPhone { get; private set; } = string.Empty;
     public string? SecondaryPhone { get; private set; }
@@ -37,7 +42,7 @@ public class Child
         MedicalNotes = medicalNotes;
     }
 
-    public void UpdateProfile(string name, DateOnly? birthDate, string bloodType, Guid classId, string parentName, string parentPhone, string? secondaryPhone)
+    public void UpdateProfile(string name, DateOnly? birthDate, string bloodType, Guid classId, string parentName, string parentPhone, string? secondaryPhone, string? gender, double? weight, double? height)
     {
         Name = name;
         BirthDate = birthDate;
@@ -46,5 +51,8 @@ public class Child
         ParentName = parentName;
         ParentPhone = parentPhone;
         SecondaryPhone = secondaryPhone;
+        Gender = gender;
+        Weight = weight;
+        Height = height;
     }
 }
