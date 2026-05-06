@@ -1,4 +1,5 @@
 using KresApp.Application.Services;
+using KresApp.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +20,7 @@ public class TeachersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetTeachers()
     {
-        var teachers = await _userService.GetTeachersAsync();
+        var teachers = await _userService.GetAll(UserRole.Teacher);
         return Ok(teachers);
     }
 }

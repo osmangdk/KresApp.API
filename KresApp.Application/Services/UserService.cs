@@ -1,42 +1,50 @@
 using KresApp.Application.DTOs;
 using KresApp.Application.Interfaces;
+using KresApp.Domain.Entities;
 using KresApp.Domain.Enums;
 
 namespace KresApp.Application.Services;
 
 public class UserService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IUserRepository _repo;
+    private readonly IPasswordHasher _hasher;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository repo, IPasswordHasher hasher)
     {
-        _userRepository = userRepository;
+        _repo = repo;
+        _hasher = hasher;
     }
 
-    public async Task<IEnumerable<UserListDto>> GetTeachersAsync()
+    public async Task<IEnumerable<UserListDto>> GetAll(UserRole? role = null)
     {
-        var teachers = await _userRepository.GetByRoleAsync(UserRole.Teacher);
-        
-        return teachers.Select(t => new UserListDto
+        var users = role.HasValue 
+            ? await _repo.GetByRoleAsync(role.Value)
+            : await _repo.GetAllAsync();
+
+        return users.Select(u => new UserListDto
         {
-            Id = t.Id,
-            Name = t.Name,
-            Email = t.Email,
-            Phone = t.Phone,
-            Role = t.Role
+            Id = u.Id,
+            Name = u.Name,
+            Email = u.Email,
+            Phone = u.Phone,
+            Role = u.Role
         });
     }
-    public async Task<IEnumerable<UserListDto>> GetParentsAsync()
+
+    public async Task Create(CreateUserDto dto)
     {
-        var parents = await _userRepository.GetByRoleAsync(UserRole.Parent);
+        var existing = await _repo.GetByEmail(dto.Email);
+        if (existing != null) throw new Exception("Bu e-posta adresi zaten kullanımda.");
+
+        var hash = _hasher.Hash(dto.Password);
+        var user = new User(dto.Email, hash, dto.Role, dto.Name, dto.Phone);
         
-        return parents.Select(t => new UserListDto
-        {
-            Id = t.Id,
-            Name = t.Name,
-            Email = t.Email,
-            Phone = t.Phone,
-            Role = t.Role
-        });
+        await _repo.AddAsync(user);
+    }
+
+    public async Task Delete(Guid id)
+    {
+        await _repo.DeleteAsync(id);
     }
 }

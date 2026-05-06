@@ -1,8 +1,9 @@
-﻿namespace KresApp.Domain.Enums;
+namespace KresApp.Domain.Enums;
 
 public enum UserRole
 {
     Admin,
     Teacher,
-    Parent
+    Parent,
+    SuperAdmin
 }

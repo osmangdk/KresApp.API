@@ -1,4 +1,5 @@
 using KresApp.Application.Services;
+using KresApp.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +20,7 @@ public class ParentsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetParents()
     {
-        var parents = await _userService.GetParentsAsync();
+        var parents = await _userService.GetAll(UserRole.Parent);
         return Ok(parents);
     }
 }

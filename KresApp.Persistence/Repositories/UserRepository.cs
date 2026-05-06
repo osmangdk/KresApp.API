@@ -19,6 +19,9 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetByRoleAsync(KresApp.Domain.Enums.UserRole role)
         => await _db.Set<User>().Where(x => x.Role == role).ToListAsync();
 
+    public async Task<IEnumerable<User>> GetAllAsync()
+        => await _db.Set<User>().ToListAsync();
+
     public async Task AddAsync(User user)
     {
         await _db.Set<User>().AddAsync(user);
@@ -29,5 +32,15 @@ public class UserRepository : IUserRepository
     {
         _db.Set<User>().Update(user);
         await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var user = await GetByIdAsync(id);
+        if (user != null)
+        {
+            _db.Set<User>().Remove(user);
+            await _db.SaveChangesAsync();
+        }
     }
 }
