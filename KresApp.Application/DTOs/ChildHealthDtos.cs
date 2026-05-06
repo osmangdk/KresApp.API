@@ -34,6 +34,7 @@ public class UpdateChildHealthRecordDto
 public class ChildHealthHistoryDto
 {
     public Guid ChildId { get; set; }
+    public Guid ParentId { get; set; }
     public string ChildName { get; set; } = null!;
     public string? Gender { get; set; }
     public DateOnly? BirthDate { get; set; }

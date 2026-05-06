@@ -29,6 +29,7 @@ public class ChildHealthService
         return new ChildHealthHistoryDto
         {
             ChildId = child.Id,
+            ParentId = child.ParentId,
             ChildName = child.Name,
             Gender = child.Gender,
             BirthDate = child.BirthDate,
@@ -78,6 +79,13 @@ public class ChildHealthService
     {
         var record = await _repo.GetByIdAsync(id);
         if (record != null) await _repo.DeleteAsync(record);
+    }
+
+    public async Task<ChildHealthHistoryDto?> GetHistoryByRecordIdAsync(Guid recordId)
+    {
+        var record = await _repo.GetByIdAsync(recordId);
+        if (record == null) return null;
+        return await GetHistoryByChildIdAsync(record.ChildId);
     }
 
     private ChildHealthRecordDto MapToDto(ChildHealthRecord record)
