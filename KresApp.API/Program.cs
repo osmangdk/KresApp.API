@@ -26,6 +26,10 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IMealMenuRepository, MealMenuRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<ISchoolBellRepository, SchoolBellRepository>();
+builder.Services.AddScoped<ILearningOutcomeRepository, LearningOutcomeRepository>();
+builder.Services.AddScoped<IMedicationRepository, MedicationRepository>();
+builder.Services.AddScoped<IGalleryRepository, GalleryRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
@@ -42,6 +46,10 @@ builder.Services.AddScoped<ScheduleService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<SchoolBellService>();
+builder.Services.AddScoped<LearningOutcomeService>();
+builder.Services.AddScoped<MedicationService>();
+builder.Services.AddScoped<GalleryService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>

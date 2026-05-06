@@ -27,6 +27,13 @@ public class AttendanceRepository : IAttendanceRepository
         return await query.ToListAsync();
     }
 
+    public async Task<List<Attendance>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+    {
+        return await _db.Attendances
+            .Where(x => x.Date >= startDate && x.Date <= endDate)
+            .ToListAsync();
+    }
+
     public async Task<List<Attendance>> GetByChildAsync(Guid childId, DateOnly? startDate = null, DateOnly? endDate = null)
     {
         var query = _db.Attendances.Where(x => x.ChildId == childId);

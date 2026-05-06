@@ -46,6 +46,32 @@ public class DashboardService
         var teachers = await _userRepo.GetByRoleAsync(UserRole.Teacher);
         var admins = await _userRepo.GetByRoleAsync(UserRole.Admin);
         int totalStaff = teachers.Count() + admins.Count();
+
+        // Weekly Attendance Calculation
+        var weeklyAttendance = new WeeklyAttendanceDto();
+        var startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+        if (today.DayOfWeek == DayOfWeek.Sunday) startOfWeek = today.AddDays(-6);
+        
+        var endOfWeek = startOfWeek.AddDays(6);
+        var weeklyData = await _attendanceRepo.GetByDateRangeAsync(startOfWeek, endOfWeek);
+
+        for (int i = 0; i < 7; i++)
+        {
+            var date = startOfWeek.AddDays(i);
+            var dayAttendance = weeklyData.Where(a => a.Date == date).ToList();
+            
+            if (dayAttendance.Count == 0 || totalStudents == 0)
+            {
+                weeklyAttendance.Rates.Add(0);
+            }
+            else
+            {
+                int presentCount = dayAttendance.Count(a => 
+                    a.Status == AttendanceStatus.Present || a.Status == AttendanceStatus.Late);
+                double rate = Math.Round((double)presentCount / totalStudents * 100, 2);
+                weeklyAttendance.Rates.Add(rate);
+            }
+        }
         
         return new DashboardStatsDto
         {
@@ -54,7 +80,8 @@ public class DashboardService
             AttendanceRate = totalStudents > 0 ? Math.Round((double)presentToday / totalStudents * 100, 2) : 0,
             PendingPayments = pendingPayments.Count,
             OverduePayments = overduePayments.Count,
-            TotalStaff = totalStaff
+            TotalStaff = totalStaff,
+            WeeklyAttendance = weeklyAttendance
         };
     }
 }

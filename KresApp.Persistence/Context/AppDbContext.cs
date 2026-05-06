@@ -18,6 +18,11 @@ public class AppDbContext : DbContext
     public DbSet<MealMenu> MealMenus => Set<MealMenu>();
     public DbSet<Schedule> Schedules => Set<Schedule>();
     public DbSet<ChildAllergy> ChildAllergies => Set<ChildAllergy>();
+    public DbSet<SchoolBellRequest> SchoolBellRequests => Set<SchoolBellRequest>();
+    public DbSet<LearningOutcome> LearningOutcomes => Set<LearningOutcome>();
+    public DbSet<Medication> Medications => Set<Medication>();
+    public DbSet<MedicationLog> MedicationLogs => Set<MedicationLog>();
+    public DbSet<GalleryItem> GalleryItems => Set<GalleryItem>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -161,6 +166,58 @@ public class AppDbContext : DbContext
                 .WithMany(c => c.Allergies)
                 .HasForeignKey(x => x.ChildId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<SchoolBellRequest>(eb => {
+            eb.ToTable("SchoolBellRequests");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
+            eb.HasOne(x => x.Parent).WithMany().HasForeignKey(x => x.ParentId);
+        });
+
+        modelBuilder.Entity<LearningOutcome>(eb => {
+            eb.ToTable("LearningOutcomes");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.Theme).IsRequired();
+            eb.Property(x => x.Outcomes)
+              .HasColumnType("jsonb")
+              .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<Medication>(eb => {
+            eb.ToTable("Medications");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.Times)
+              .HasColumnType("jsonb")
+              .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
+        });
+
+        modelBuilder.Entity<MedicationLog>(eb => {
+            eb.ToTable("MedicationLogs");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.HasOne(x => x.Medication).WithMany().HasForeignKey(x => x.MedicationId);
+            eb.HasOne(x => x.GivenBy).WithMany().HasForeignKey(x => x.GivenByUserId);
+        });
+
+        modelBuilder.Entity<GalleryItem>(eb => {
+            eb.ToTable("GalleryItems");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedByUserId);
+            eb.HasOne(x => x.Class).WithMany().HasForeignKey(x => x.ClassId);
+            eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
         });
     }
 }
