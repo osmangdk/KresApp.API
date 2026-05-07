@@ -34,8 +34,20 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var token = await _auth.Login(dto.Email, dto.Password);
-            return Ok(new { token });
+            var result = await _auth.Login(dto.Email, dto.Password);
+
+            if (result.Status == "not_registered")
+            {
+                // LDAP doğrulandı ama sistemde hesap yok → Flutter talep ekranına yönlenecek
+                return Accepted(new
+                {
+                    status = "not_registered",
+                    ldapName = result.LdapName,
+                    email = dto.Email
+                });
+            }
+
+            return Ok(new { token = result.Token });
         }
         catch (Exception ex)
         {

@@ -33,6 +33,7 @@ builder.Services.AddScoped<IMedicationRepository, MedicationRepository>();
 builder.Services.AddScoped<IGalleryRepository, GalleryRepository>();
 builder.Services.AddScoped<IVaccinationRepository, VaccinationRepository>();
 builder.Services.AddScoped<IChildHealthRepository, ChildHealthRepository>();
+builder.Services.AddScoped<IUserAccessRequestRepository, UserAccessRequestRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ILdapService, LdapService>();
@@ -60,6 +61,7 @@ builder.Services.AddScoped<MedicationService>();
 builder.Services.AddScoped<GalleryService>();
 builder.Services.AddScoped<VaccinationService>();
 builder.Services.AddScoped<ChildHealthService>();
+builder.Services.AddScoped<UserAccessRequestService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>

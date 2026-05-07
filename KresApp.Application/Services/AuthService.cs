@@ -27,38 +27,45 @@ public class AuthService
 
         var hash = _hasher.Hash(password);
         var user = new User(email, hash, role, name, phone);
-
         await _users.AddAsync(user);
     }
 
-    public async Task<string> Login(string email, string password)
+    /// <summary>
+    /// Sadece LDAP doğrulaması yapar. AccessRequestController tarafından kullanılır.
+    /// </summary>
+    public async Task<bool> ValidateLdapAsync(string email, string password)
+    {
+        try { return await _ldap.AuthenticateAsync(email, password); }
+        catch { return false; }
+    }
+
+    /// <summary>
+    /// Login sonucu: token döner ya da "not_registered" status döner.
+    /// </summary>
+    public async Task<LoginResult> Login(string email, string password)
     {
         var user = await _users.GetByEmail(email);
 
         // 1. LDAP denemesi — bağlantı hatası veya timeout olursa yerel auth'a düş
         bool isLdapAuth = false;
-        try
-        {
-            isLdapAuth = await _ldap.AuthenticateAsync(email, password);
-        }
-        catch
-        {
-            // LDAP sunucusuna ulaşılamıyor, yerel auth ile devam edilecek
-            isLdapAuth = false;
-        }
+        try { isLdapAuth = await _ldap.AuthenticateAsync(email, password); }
+        catch { isLdapAuth = false; }
 
         if (isLdapAuth)
         {
             if (user == null)
             {
-                // LDAP'ta var ama yerelde yoksa "Gölge Kullanıcı" oluştur
+                // LDAP'ta var ama sistemde hesabı yok → talep ekranına yönlendir
                 LdapUserInfo? info = null;
                 try { info = await _ldap.GetUserInfoAsync(email); } catch { }
 
-                user = new User(email, "LDAP_USER", UserRole.Teacher, info?.Name ?? email, info?.Phone);
-                await _users.AddAsync(user);
+                return new LoginResult(
+                    Status: "not_registered",
+                    Token: null,
+                    LdapName: info?.Name ?? email
+                );
             }
-            return _jwt.Generate(user.Id, user.Role.ToString(), user.Email);
+            return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null);
         }
 
         // 2. LDAP başarısız veya devre dışı — yerel veritabanı kontrolü
@@ -66,15 +73,14 @@ public class AuthService
             throw new Exception("E-posta veya şifre hatalı.");
 
         if (user.PasswordHash == "LDAP_USER")
-        {
-            // Sadece LDAP ile giriş yapabilen hesap ama LDAP erişilemiyor
-            throw new Exception("Kurumsal hesabınızla giriş yapılamadı. Ağ bağlantınızı kontrol edin.");
-        }
+            throw new Exception("Kurumsal hesabınızla giriş yapılamadı. Ağa bağlı olduğunuzdan emin olun.");
 
         var ok = _hasher.Verify(password, user.PasswordHash);
         if (!ok)
             throw new Exception("E-posta veya şifre hatalı.");
 
-        return _jwt.Generate(user.Id, user.Role.ToString(), user.Email);
+        return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null);
     }
 }
+
+public record LoginResult(string Status, string? Token, string? LdapName);

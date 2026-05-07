@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<GalleryItem> GalleryItems => Set<GalleryItem>();
     public DbSet<Vaccination> Vaccinations => Set<Vaccination>();
     public DbSet<ChildHealthRecord> ChildHealthRecords => Set<ChildHealthRecord>();
+    public DbSet<UserAccessRequest> UserAccessRequests => Set<UserAccessRequest>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -242,6 +243,15 @@ public class AppDbContext : DbContext
             eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
             eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             eb.HasOne(x => x.Child).WithMany(c => c.HealthRecords).HasForeignKey(x => x.ChildId);
+        });
+
+        modelBuilder.Entity<UserAccessRequest>(eb => {
+            eb.ToTable("UserAccessRequests");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.Email).IsRequired();
+            eb.Property(x => x.Name).IsRequired();
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
         });
     }
 }
