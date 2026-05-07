@@ -11,8 +11,13 @@ namespace KresApp.Application.Services;
 public class GalleryService
 {
     private readonly IGalleryRepository _repo;
+    private readonly IFileStorageService _storage;
 
-    public GalleryService(IGalleryRepository repo) => _repo = repo;
+    public GalleryService(IGalleryRepository repo, IFileStorageService storage)
+    {
+        _repo = repo;
+        _storage = storage;
+    }
 
     public async Task<List<GalleryItemDto>> GetForUserAsync(Guid? classId, Guid? childId)
     {
@@ -41,12 +46,25 @@ public class GalleryService
 
     public async Task CreateAsync(CreateGalleryItemDto dto, Guid userId)
     {
+        string? url = dto.Url;
+
+        if (dto.File != null)
+        {
+            using var stream = dto.File.OpenReadStream();
+            url = await _storage.UploadFileAsync(stream, dto.File.FileName, dto.File.ContentType);
+        }
+
+        if (string.IsNullOrEmpty(url))
+        {
+            throw new Exception("Medya dosyası veya URL gereklidir.");
+        }
+
         var item = new GalleryItem
         {
             Id = Guid.NewGuid(),
             Title = dto.Title,
             Description = dto.Description,
-            Url = dto.Url,
+            Url = url,
             ThumbnailUrl = dto.ThumbnailUrl,
             Type = dto.Type,
             ClassId = dto.ClassId,

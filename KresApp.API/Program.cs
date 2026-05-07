@@ -1,6 +1,7 @@
 using KresApp.Application.Interfaces;
 using KresApp.Application.Services;
 using KresApp.Infrastructure.Services;
+using KresApp.Infrastructure.Settings;
 using KresApp.Persistence.Context;
 using KresApp.Persistence.Repositories;
 using KresApp.API.Swagger;
@@ -34,6 +35,11 @@ builder.Services.AddScoped<IVaccinationRepository, VaccinationRepository>();
 builder.Services.AddScoped<IChildHealthRepository, ChildHealthRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ILdapService, LdapService>();
+builder.Services.AddScoped<IFileStorageService, MinioStorageService>();
+
+builder.Services.Configure<LdapSettings>(builder.Configuration.GetSection("Ldap"));
+builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("Minio"));
 
 builder.Services.AddScoped<ChildService>();
 builder.Services.AddScoped<AuthService>();

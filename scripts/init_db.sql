@@ -314,11 +314,11 @@ CREATE INDEX IF NOT EXISTS ix_galleryitems_childid ON "GalleryItems"("ChildId");
 -- 1. Users (Kullanıcılar)
 -- Role: 0=Admin, 1=Teacher, 2=Parent
 INSERT INTO "Users" ("Id", "Email", "PasswordHash", "Role", "Name", "Phone") VALUES
-('11111111-1111-1111-1111-111111111111', 'admin@kresapp.com', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 0, 'Admin Kullanıcısı', '05550000000'),
-('22222222-2222-2222-2222-222222222222', 'teacher1@kresapp.com', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 1, 'Ayşe Öğretmen', '05551111111'),
-('33333333-3333-3333-3333-333333333333', 'teacher2@kresapp.com', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 1, 'Fatma Öğretmen', '05552222222'),
-('44444444-4444-4444-4444-444444444444', 'parent1@kresapp.com', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 2, 'Ahmet Veli', '05553333333'),
-('55555555-5555-5555-5555-555555555555', 'parent2@kresapp.com', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 2, 'Zeynep Veli', '05554444444')
+('11111111-1111-1111-1111-111111111111', 'admin@aile.gov.tr', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 0, 'Admin Kullanıcısı', '05550000000'),
+('22222222-2222-2222-2222-222222222222', 'teacher1@aile.gov.tr', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 1, 'Ayşe Öğretmen', '05551111111'),
+('33333333-3333-3333-3333-333333333333', 'teacher2@aile.gov.tr', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 1, 'Fatma Öğretmen', '05552222222'),
+('44444444-4444-4444-4444-444444444444', 'parent1@aile.gov.tr', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 2, 'Ahmet Veli', '05553333333'),
+('55555555-5555-5555-5555-555555555555', 'parent2@aile.gov.tr', '$2a$11$qJHgNN6EXe.7X8vbJgh4w.9lj6BSISWp8nHsZ31lPw5XsreS9JEz6', 2, 'Zeynep Veli', '05554444444')
 ON CONFLICT ("Id") DO UPDATE SET "PasswordHash" = EXCLUDED."PasswordHash";
 
 -- 2. Classes (Sınıflar)

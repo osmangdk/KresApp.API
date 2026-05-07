@@ -47,16 +47,18 @@ public class MedicationRepository : IMedicationRepository
 
     public async Task<List<MedicationLog>> GetLogsAsync(Guid childId, DateTime date)
     {
+        var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
         return await _db.MedicationLogs
             .Include(x => x.GivenBy)
-            .Where(x => x.Medication.ChildId == childId && x.Date == date.Date)
+            .Where(x => x.Medication.ChildId == childId && x.Date == utcDate)
             .ToListAsync();
     }
 
     public async Task<MedicationLog?> GetLogAsync(Guid medicationId, DateTime date, string time)
     {
+        var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
         return await _db.MedicationLogs
-            .FirstOrDefaultAsync(x => x.MedicationId == medicationId && x.Date == date.Date && x.Time == time);
+            .FirstOrDefaultAsync(x => x.MedicationId == medicationId && x.Date == utcDate && x.Time == time);
     }
 
     public async Task AddLogAsync(MedicationLog log)

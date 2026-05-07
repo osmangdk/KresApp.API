@@ -8,7 +8,7 @@ namespace KresApp.API.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Roles = "SuperAdmin")]
+[Authorize(Roles = "SuperAdmin,Admin")]
 public class UsersController : ControllerBase
 {
     private readonly UserService _service;

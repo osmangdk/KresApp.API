@@ -9,6 +9,8 @@ public class UserListDto
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public UserRole Role { get; set; }
+    public Guid? ClassId { get; set; }
+    public string? ClassName { get; set; }
 }
 
 public class CreateUserDto

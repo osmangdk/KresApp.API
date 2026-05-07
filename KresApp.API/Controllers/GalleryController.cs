@@ -26,7 +26,7 @@ public class GalleryController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin,Teacher")]
-    public async Task<IActionResult> Create([FromBody] CreateGalleryItemDto dto)
+    public async Task<IActionResult> Create([FromForm] CreateGalleryItemDto dto)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await _service.CreateAsync(dto, userId);

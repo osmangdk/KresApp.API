@@ -1,4 +1,5 @@
 using KresApp.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 
 namespace KresApp.Application.DTOs;
@@ -21,9 +22,10 @@ public class CreateGalleryItemDto
 {
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
-    public string Url { get; set; } = null!;
+    public string? Url { get; set; }
     public string? ThumbnailUrl { get; set; }
     public MediaType Type { get; set; }
     public Guid? ClassId { get; set; }
     public Guid? ChildId { get; set; }
+    public IFormFile? File { get; set; }
 }
