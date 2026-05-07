@@ -28,12 +28,8 @@ public class AccessRequestController : ControllerBase
     {
         try
         {
-            // Önce LDAP ile doğrula
-            bool isLdap = await _authService.ValidateLdapAsync(dto.Email, dto.Password);
-            if (!isLdap)
-                return BadRequest(new { message = "LDAP kimlik doğrulaması başarısız. Kurumsal ağa bağlı olduğunuzdan emin olun." });
-
-            await _service.CreateRequestAsync(dto.Email, new CreateAccessRequestDto(dto.Name, dto.Phone ?? string.Empty, dto.Phone));
+            // Şifre sorma kaldırıldı, talep doğrudan oluşturulacak. Yönetici onayı gerektiği için güvenli.
+            await _service.CreateRequestAsync(dto.Email, new CreateAccessRequestDto(dto.Email, dto.Name, dto.Phone));
             return Ok(new { message = "Erişim talebiniz alındı. Yönetici onayından sonra giriş yapabileceksiniz." });
         }
         catch (Exception ex)
@@ -92,7 +88,6 @@ public class AccessRequestController : ControllerBase
 
 public record CreateAccessRequestWithCredentialsDto(
     string Email,
-    string Password,
     string Name,
     string? Phone
 );
