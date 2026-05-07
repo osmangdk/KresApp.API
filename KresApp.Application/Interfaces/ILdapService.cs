@@ -4,6 +4,7 @@ public interface ILdapService
 {
     Task<bool> AuthenticateAsync(string email, string password);
     Task<LdapUserInfo?> GetUserInfoAsync(string email);
+    Task<bool> IsReachableAsync();
 }
 
 public class LdapUserInfo

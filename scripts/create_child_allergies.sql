@@ -1,6 +1,6 @@
 -- child_allergies: Çocuğa ait alerji bilgileri (1:N ilişki)
 CREATE TABLE IF NOT EXISTS child_allergies (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
     allergy_name TEXT NOT NULL,
     severity TEXT,           -- Hafif, Orta, Ağır

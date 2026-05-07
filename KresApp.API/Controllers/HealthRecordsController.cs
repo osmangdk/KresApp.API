@@ -35,7 +35,7 @@ public class HealthRecordsController : ControllerBase
         }
 
         var result = await _service.GetHistoryByChildIdAsync(childId);
-        if (result == null) return NotFound();
+        if (result == null) return Ok(new { message = "Kayıt bulunamadı." }); 
         return Ok(result);
     }
 

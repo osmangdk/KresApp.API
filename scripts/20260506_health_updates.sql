@@ -6,7 +6,7 @@ ADD COLUMN IF NOT EXISTS "Height" DOUBLE PRECISION;
 
 -- 2. Vaccinations (Aşılar) tablosu
 CREATE TABLE IF NOT EXISTS "Vaccinations" (
-    "Id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "Id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "ChildId" UUID NOT NULL REFERENCES "Children"("Id") ON DELETE CASCADE,
     "VaccineName" TEXT NOT NULL,
     "PlannedDate" DATE,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS "Vaccinations" (
 
 -- 3. ChildHealthRecords (Sağlık Kayıtları) tablosu
 CREATE TABLE IF NOT EXISTS "ChildHealthRecords" (
-    "Id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "Id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "ChildId" UUID NOT NULL REFERENCES "Children"("Id") ON DELETE CASCADE,
     "DiseaseName" TEXT NOT NULL,
     "OccurrenceDate" DATE,

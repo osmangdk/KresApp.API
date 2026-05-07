@@ -36,6 +36,11 @@ public class AuthController : ControllerBase
         {
             var result = await _auth.Login(dto.Email, dto.Password);
 
+            if (result.Status == "requires_otp")
+            {
+                return Ok(new { status = "requires_otp", email = dto.Email });
+            }
+
             if (result.Status == "not_registered")
             {
                 // LDAP doğrulandı ama sistemde hesap yok → Flutter talep ekranına yönlenecek
@@ -48,6 +53,20 @@ public class AuthController : ControllerBase
             }
 
             return Ok(new { token = result.Token });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
+    {
+        try
+        {
+            var token = await _auth.VerifyOtp(dto.Email, dto.Code);
+            return Ok(new { token });
         }
         catch (Exception ex)
         {

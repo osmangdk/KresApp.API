@@ -64,14 +64,15 @@ public class UserService
         }
         else
         {
-            // Kurum domainleri için LDAP zorunluluğu (Opsiyonel: Eğer LDAP'ta yoksa ekletme)
+            // Kurum domainleri için LDAP kontrolü (Bilgi amaçlı, zorunlu değil)
             bool isCorporateDomain = dto.Email.Contains("@aile.gov.tr") || 
                                      dto.Email.Contains("@aile.bulutu") || 
                                      dto.Email.Contains(".local");
             
-            if (isCorporateDomain)
+            // Eğer şifre verilmemişse ve LDAP'ta da bulunamadıysa hata ver
+            if (string.IsNullOrWhiteSpace(dto.Password))
             {
-                throw new Exception("Bu e-posta adresi kurum rehberinde (AD/LDAP) bulunamadı. Lütfen bilgileri kontrol edin.");
+                throw new Exception("Kullanıcı kurum rehberinde bulunamadı. Lütfen bir şifre belirleyerek yerel kullanıcı olarak ekleyin.");
             }
 
             hash = _hasher.Hash(dto.Password);

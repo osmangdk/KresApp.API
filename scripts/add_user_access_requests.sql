@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "UserAccessRequests" (
-    "Id"          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "Id"          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "Email"       TEXT NOT NULL,
     "Name"        TEXT NOT NULL,
     "Phone"       TEXT,

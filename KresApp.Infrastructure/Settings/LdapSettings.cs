@@ -10,4 +10,6 @@ public class AdDomainSetting
 {
     public string Name { get; set; } = string.Empty; // e.g. aile.bulutu
     public string Container { get; set; } = string.Empty; // e.g. DC=aile,DC=bulutu
+    public int Port { get; set; } = 389; // Default LDAP port
+    public bool UseSsl { get; set; } = false;
 }

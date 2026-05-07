@@ -41,6 +41,11 @@ builder.Services.AddScoped<IFileStorageService, MinioStorageService>();
 
 builder.Services.Configure<LdapSettings>(builder.Configuration.GetSection("Ldap"));
 builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("Minio"));
+builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("Sms"));
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ISmsService, SmsService>();
 
 builder.Services.AddScoped<ChildService>();
 builder.Services.AddScoped<AuthService>();

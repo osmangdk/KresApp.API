@@ -2,6 +2,7 @@ using KresApp.Application.DTOs;
 using KresApp.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace KresApp.API.Controllers;
 
@@ -11,16 +12,17 @@ public class AccessRequestController : ControllerBase
 {
     private readonly UserAccessRequestService _service;
     private readonly AuthService _authService;
+    private readonly IMemoryCache _cache;
 
-    public AccessRequestController(UserAccessRequestService service, AuthService authService)
+    public AccessRequestController(UserAccessRequestService service, AuthService authService, IMemoryCache cache)
     {
         _service = service;
         _authService = authService;
+        _cache = cache;
     }
 
     /// <summary>
     /// LDAP kullanıcısı erişim talebi gönderir.
-    /// E-posta ve şifre ile LDAP doğrulaması yapılır, ardından talep kaydedilir.
     /// </summary>
     [HttpPost]
     [AllowAnonymous]
@@ -28,9 +30,45 @@ public class AccessRequestController : ControllerBase
     {
         try
         {
-            // Şifre sorma kaldırıldı, talep doğrudan oluşturulacak. Yönetici onayı gerektiği için güvenli.
+            // 1. Senaryo: Az önce Login ekranından LDAP doğrulaması alıp gelmiş mi?
+            if (_cache.TryGetValue($"ldap_verified_{dto.Email}", out bool isVerified) && isVerified)
+            {
+                await _service.CreateRequestAsync(dto.Email, new CreateAccessRequestDto(dto.Email, dto.Name, dto.Phone));
+                // Kullanıldıktan sonra işareti temizleyelim
+                _cache.Remove($"ldap_verified_{dto.Email}");
+                return Ok(new { message = "Erişim talebiniz alındı. Yönetici onayından sonra giriş yapabileceksiniz." });
+            }
+
+            // 2. Senaryo: Doğrudan buradan (veya şifreyle) talep gönderiliyorsa LDAP + SMS doğrulaması yap
+            var result = await _authService.ValidateLdapWithMfaAsync(dto.Email, dto.Password ?? "");
+            if (result.Success && result.RequiresOtp)
+            {
+                return Ok(new { status = "requires_otp", email = dto.Email });
+            }
+
+            if (!result.Success)
+                return BadRequest(new { message = "LDAP bilgileri hatalı veya doğrulama süresi dolmuş." });
+
             await _service.CreateRequestAsync(dto.Email, new CreateAccessRequestDto(dto.Email, dto.Name, dto.Phone));
             return Ok(new { message = "Erişim talebiniz alındı. Yönetici onayından sonra giriş yapabileceksiniz." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("verify-otp")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyOtpAndCreate([FromBody] VerifyOtpAndCreateRequestDto dto)
+    {
+        try
+        {
+            var isValid = await _authService.VerifyOtpOnly(dto.Email, dto.Code);
+            if (!isValid) return BadRequest(new { message = "Doğrulama kodu hatalı veya süresi dolmuş." });
+
+            await _service.CreateRequestAsync(dto.Email, new CreateAccessRequestDto(dto.Email, dto.Name, dto.Phone));
+            return Ok(new { message = "Doğrulama başarılı. Erişim talebiniz alındı." });
         }
         catch (Exception ex)
         {
@@ -88,6 +126,14 @@ public class AccessRequestController : ControllerBase
 
 public record CreateAccessRequestWithCredentialsDto(
     string Email,
+    string? Password,
+    string Name,
+    string? Phone
+);
+
+public record VerifyOtpAndCreateRequestDto(
+    string Email,
+    string Code,
     string Name,
     string? Phone
 );

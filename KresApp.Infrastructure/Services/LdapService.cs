@@ -10,7 +10,7 @@ public class LdapService : ILdapService
     private readonly LdapSettings _settings;
 
     // LDAP sunucusuna bağlanma için maksimum bekleme süresi (saniye)
-    private const int LdapTimeoutSeconds = 5;
+    private const int LdapTimeoutSeconds = 20;
 
     public LdapService(IOptions<LdapSettings> settings)
     {
@@ -21,34 +21,61 @@ public class LdapService : ILdapService
     {
         if (!_settings.Enabled) return false;
 
+        // Toplam işlem süresi (VPN/LDAPS yavaştır)
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(LdapTimeoutSeconds));
 
         try
         {
             var domain = _settings.Domains;
+            
+            // Farklı kimlik doğrulama yöntemlerini sırayla deneyelim
+            var authOptions = new[] {
+                ContextOptions.Negotiate | ContextOptions.SecureSocketLayer,
+                ContextOptions.SimpleBind | ContextOptions.SecureSocketLayer
+            };
 
-            // PrincipalContext senkron çalışır, Task.Run ile timeout uyguluyoruz
-            var ldapTask = Task.Run(() =>
+            foreach (var options in authOptions)
             {
-                using var ctx = new PrincipalContext(
-                    ContextType.Domain,
-                    domain.Name,
-                    domain.Container,
-                    email,
-                    password);
-                return ctx.ValidateCredentials(email, password);
-            }, cts.Token);
+                if (cts.Token.IsCancellationRequested) break;
 
-            return await ldapTask.WaitAsync(cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Timeout: LDAP sunucusuna 5 saniyede ulaşılamadı
+                var ldapTask = Task.Run(() =>
+                {
+                    try 
+                    {
+                        // SSL (636) kullanırken Hostname (aile.bulutu) kullanmak 
+                        // sertifika doğrulaması için IP'den daha güvenlidir.
+                        using var ctx = new PrincipalContext(
+                            ContextType.Domain,
+                            domain.Name,
+                            domain.Container,
+                            options,
+                            email,
+                            password);
+                            
+                        return ctx.ValidateCredentials(email, password);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }, cts.Token);
+
+                try 
+                {
+                    // Her bir deneme için 10 saniye limit
+                    if (await ldapTask.WaitAsync(TimeSpan.FromSeconds(10), cts.Token)) 
+                        return true;
+                }
+                catch 
+                { 
+                    continue; 
+                }
+            }
+
             return false;
         }
         catch
         {
-            // Bağlantı hatası veya kimlik doğrulama başarısız
             return false;
         }
     }
@@ -65,30 +92,44 @@ public class LdapService : ILdapService
 
             var ldapTask = Task.Run(() =>
             {
-                using var ctx = new PrincipalContext(ContextType.Domain, domain.Name, domain.Container);
-
-                // 1. Önce UserPrincipalName (UPN) ile aramayı dene
-                var user = UserPrincipal.FindByIdentity(ctx, IdentityType.UserPrincipalName, email);
-
-                if (user == null)
+                try 
                 {
-                    // 2. EmailAddress özelliğine göre arama yap
-                    using var userTemplate = new UserPrincipal(ctx) { EmailAddress = email };
-                    using var searcher = new PrincipalSearcher(userTemplate);
-                    user = searcher.FindOne() as UserPrincipal;
-                }
+                    var options = ContextOptions.Negotiate;
+                    if (domain.UseSsl) options |= ContextOptions.SecureSocketLayer;
 
-                if (user != null)
-                {
-                    return new LdapUserInfo
+                    var server = domain.Port != 389 && domain.Port != 636 
+                        ? $"{domain.Name}:{domain.Port}" 
+                        : domain.Name;
+
+                    using var ctx = new PrincipalContext(ContextType.Domain, server, domain.Container, options);
+
+                    // 1. Önce UserPrincipalName (UPN) ile aramayı dene
+                    var user = UserPrincipal.FindByIdentity(ctx, IdentityType.UserPrincipalName, email);
+
+                    if (user == null)
                     {
-                        Name = user.DisplayName ?? user.Name,
-                        Email = user.EmailAddress ?? email,
-                        Phone = user.VoiceTelephoneNumber
-                    };
-                }
+                        // 2. EmailAddress özelliğine göre arama yap
+                        using var userTemplate = new UserPrincipal(ctx) { EmailAddress = email };
+                        using var searcher = new PrincipalSearcher(userTemplate);
+                        user = searcher.FindOne() as UserPrincipal;
+                    }
 
-                return null;
+                    if (user != null)
+                    {
+                        return new LdapUserInfo
+                        {
+                            Name = user.DisplayName ?? user.Name,
+                            Email = user.EmailAddress ?? email,
+                            Phone = user.VoiceTelephoneNumber
+                        };
+                    }
+
+                    return null;
+                }
+                catch
+                {
+                    return null;
+                }
             }, cts.Token);
 
             return await ldapTask.WaitAsync(cts.Token);
@@ -101,6 +142,48 @@ public class LdapService : ILdapService
         catch
         {
             return null;
+        }
+    }
+
+    public async Task<bool> IsReachableAsync()
+    {
+        if (!_settings.Enabled) return false;
+
+        try
+        {
+            var domain = _settings.Domains;
+            
+            // 1. DNS üzerinden tüm IP'leri alalım
+            var addresses = await System.Net.Dns.GetHostAddressesAsync(domain.Name);
+            if (addresses.Length == 0) return false;
+
+            // 2. IP'leri sırayla deneyelim
+            foreach (var ip in addresses)
+            {
+                try 
+                {
+                    using var tcpClient = new System.Net.Sockets.TcpClient();
+                    var connectTask = tcpClient.ConnectAsync(ip, domain.Port);
+                    var timeoutTask = Task.Delay(2000); // IP başına 2 saniye yeterli olmalı
+
+                    if (await Task.WhenAny(connectTask, timeoutTask) == connectTask)
+                    {
+                        await connectTask; 
+                        if (tcpClient.Connected) return true;
+                    }
+                }
+                catch 
+                {
+                    // Bu IP'ye ulaşılamadı, bir sonrakini dene
+                    continue;
+                }
+            }
+            
+            return false;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

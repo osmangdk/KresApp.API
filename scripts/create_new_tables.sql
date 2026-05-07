@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Attendances
 CREATE TABLE IF NOT EXISTS attendances (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     child_id UUID NOT NULL,
     date DATE NOT NULL,
     status INTEGER NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS attendances (
 
 -- 2. Daily Reports
 CREATE TABLE IF NOT EXISTS daily_reports (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     child_id UUID NOT NULL,
     date DATE NOT NULL,
     mood INTEGER NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS daily_reports (
 
 -- 3. Announcements
 CREATE TABLE IF NOT EXISTS announcements (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     category INTEGER NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS announcements (
 
 -- 4. Payments
 CREATE TABLE IF NOT EXISTS payments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     child_id UUID NOT NULL,
     amount NUMERIC NOT NULL,
     month INTEGER NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS payments (
 
 -- 5. Conversations
 CREATE TABLE IF NOT EXISTS conversations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT,
     is_group BOOLEAN NOT NULL,
     participant_ids UUID[] NOT NULL DEFAULT '{}',
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS conversations (
 
 -- 6. Messages
 CREATE TABLE IF NOT EXISTS messages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     conversation_id UUID NOT NULL,
     sender_id UUID NOT NULL,
     sender_name TEXT NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- 7. Meal Menus
 CREATE TABLE IF NOT EXISTS meal_menus (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     day TEXT NOT NULL,
     breakfast TEXT NOT NULL,
     lunch TEXT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS meal_menus (
 
 -- 8. Schedules
 CREATE TABLE IF NOT EXISTS schedules (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     day TEXT NOT NULL,
     subject TEXT NOT NULL,
     start_time TEXT NOT NULL,

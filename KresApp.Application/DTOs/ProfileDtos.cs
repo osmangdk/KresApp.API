@@ -7,6 +7,7 @@ public class ProfileDto
     public string Email { get; set; } = null!;
     public string? Phone { get; set; }
     public string Role { get; set; } = null!;
+    public List<Guid>? ChildIds { get; set; }
 }
 
 public class UpdateProfileDto
