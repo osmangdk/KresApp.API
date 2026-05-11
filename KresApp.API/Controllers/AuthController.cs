@@ -1,5 +1,6 @@
 using KresApp.Application.DTOs;
 using KresApp.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc; 
 
 namespace KresApp.API.Controllers;
@@ -16,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         try
@@ -52,7 +54,7 @@ public class AuthController : ControllerBase
                 });
             }
 
-            return Ok(new { token = result.Token });
+            return Ok(new { token = result.Token, accountStatus = result.AccountStatus });
         }
         catch (Exception ex)
         {

@@ -10,6 +10,8 @@ public class User
     public UserRole Role { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string? Phone { get; private set; }
+    public string? TcKimlikNo { get; private set; }
+    public AccountStatus AccountStatus { get; private set; } = AccountStatus.Active;
 
     // EF için boş ctor
     public User()
@@ -17,13 +19,15 @@ public class User
         
     }
 
-    public User(string email, string passwordHash, UserRole role, string name = "", string? phone = null)
+    public User(string email, string passwordHash, UserRole role, string name = "", string? phone = null, string? tcKimlikNo = null, AccountStatus accountStatus = AccountStatus.Active)
     {
         Email = email;
         PasswordHash = passwordHash;
         Role = role;
         Name = name;
         Phone = phone;
+        TcKimlikNo = tcKimlikNo;
+        AccountStatus = accountStatus;
     }
 
     public void ChangePassword(string newHash)
@@ -31,10 +35,11 @@ public class User
         PasswordHash = newHash;
     }
 
-    public void UpdateProfile(string name, string? phone)
+    public void UpdateProfile(string name, string? phone, string? tcKimlikNo = null)
     {
         Name = name;
         Phone = phone;
+        if (tcKimlikNo != null) TcKimlikNo = tcKimlikNo;
     }
 
     public void UpdateEmail(string email)
@@ -45,5 +50,10 @@ public class User
     public void UpdateRole(UserRole role)
     {
         Role = role;
+    }
+
+    public void SetAccountStatus(AccountStatus status)
+    {
+        AccountStatus = status;
     }
 }

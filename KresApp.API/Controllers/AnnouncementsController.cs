@@ -31,7 +31,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateAnnouncementDto dto)
     {
         await _service.CreateAsync(dto);
@@ -39,7 +39,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateAnnouncementDto dto)
     {
         try {
@@ -49,7 +49,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);

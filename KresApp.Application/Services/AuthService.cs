@@ -148,7 +148,7 @@ public class AuthService
             }
 
             // SMS gerekmiyorsa (VPN) doğrudan giriş yap ve token dön
-            return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null);
+            return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
         }
 
         // 2. LDAP başarısız veya devre dışı — yerel veritabanı kontrolü
@@ -162,7 +162,7 @@ public class AuthService
         if (!ok)
             throw new Exception("E-posta veya şifre hatalı.");
 
-        return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null);
+        return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
     }
 
     public async Task<string> VerifyOtp(string email, string code)
@@ -186,5 +186,5 @@ public class AuthService
     }
 }
 
-public record LoginResult(string Status, string? Token, string? LdapName);
+public record LoginResult(string Status, string? Token, string? LdapName, string? AccountStatus = null);
 public record LdapAuthResult(bool Success, bool RequiresOtp);

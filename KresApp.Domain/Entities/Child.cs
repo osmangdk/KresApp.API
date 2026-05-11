@@ -6,6 +6,7 @@ public class Child
 {
     public Guid Id { get; private set; }
     public string Name { get; private set; } = null!;
+    public string? TcKimlikNo { get; private set; }
     public DateOnly? BirthDate { get; private set; }
     public Guid ParentId { get; private set; }
     public Guid ClassId { get; private set; }
@@ -28,12 +29,13 @@ public class Child
     {
     }
 
-    public Child(string name, Guid parentId, Guid classId, DateOnly? birthDate = null)
+    public Child(string name, Guid parentId, Guid classId, DateOnly? birthDate = null, string? tcKimlikNo = null)
     {
         Name = name;
         ParentId = parentId;
         ClassId = classId;
         BirthDate = birthDate;
+        TcKimlikNo = tcKimlikNo;
         EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow);
     }
 
@@ -42,7 +44,7 @@ public class Child
         MedicalNotes = medicalNotes;
     }
 
-    public void UpdateProfile(string name, DateOnly? birthDate, string bloodType, Guid classId, string parentName, string parentPhone, string? secondaryPhone, string? gender, double? weight, double? height)
+    public void UpdateProfile(string name, DateOnly? birthDate, string bloodType, Guid classId, string parentName, string parentPhone, string? secondaryPhone, string? gender, double? weight, double? height, string? tcKimlikNo = null)
     {
         Name = name;
         BirthDate = birthDate;
@@ -54,5 +56,6 @@ public class Child
         Gender = gender;
         Weight = weight;
         Height = height;
+        if (tcKimlikNo != null) TcKimlikNo = tcKimlikNo;
     }
 }

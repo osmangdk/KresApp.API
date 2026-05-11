@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<Vaccination> Vaccinations => Set<Vaccination>();
     public DbSet<ChildHealthRecord> ChildHealthRecords => Set<ChildHealthRecord>();
     public DbSet<UserAccessRequest> UserAccessRequests => Set<UserAccessRequest>();
+    public DbSet<EnrollmentRequest> EnrollmentRequests => Set<EnrollmentRequest>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -49,6 +50,8 @@ public class AppDbContext : DbContext
             eb.Property(x => x.Name)
                 .HasColumnName("Name")
                 .IsRequired();
+            eb.Property(x => x.TcKimlikNo)
+                .HasColumnName("TcKimlikNo");
             eb.Property(x => x.BirthDate)
                 .HasColumnName("BirthDate");
             eb.Property(x => x.ParentId)
@@ -251,6 +254,29 @@ public class AppDbContext : DbContext
             eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
             eb.Property(x => x.Email).IsRequired();
             eb.Property(x => x.Name).IsRequired();
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<EnrollmentRequest>(eb => {
+            eb.ToTable("EnrollmentRequests");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.ParentName).IsRequired();
+            eb.Property(x => x.ParentEmail).IsRequired();
+            eb.Property(x => x.ParentPhone).IsRequired();
+            eb.Property(x => x.ParentPassword).IsRequired();
+            eb.Property(x => x.ChildFullName).IsRequired();
+            eb.Property(x => x.ChildTcKimlikNo).HasColumnName("ChildTcKimlikNo");
+            
+            eb.Property(x => x.ParentSicilNo).HasColumnName("ParentSicilNo");
+            eb.Property(x => x.ParentUnit).HasColumnName("ParentUnit");
+            eb.Property(x => x.ParentTitle).HasColumnName("ParentTitle");
+            eb.Property(x => x.ParentServiceYears).HasColumnName("ParentServiceYears");
+            eb.Property(x => x.SpouseIsAlive).HasColumnName("SpouseIsAlive");
+            eb.Property(x => x.SpouseIsWorking).HasColumnName("SpouseIsWorking");
+            eb.Property(x => x.SpouseWorkplace).HasColumnName("SpouseWorkplace");
+            eb.Property(x => x.SpouseWorkplaceHasDaycare).HasColumnName("SpouseWorkplaceHasDaycare");
+
             eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
         });
     }

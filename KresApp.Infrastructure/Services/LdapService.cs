@@ -42,20 +42,42 @@ public class LdapService : ILdapService
                 {
                     try 
                     {
-                        // SSL (636) kullanırken Hostname (aile.bulutu) kullanmak 
-                        // sertifika doğrulaması için IP'den daha güvenlidir.
-                        using var ctx = new PrincipalContext(
-                            ContextType.Domain,
-                            domain.Name,
-                            domain.Container,
-                            options,
-                            email,
-                            password);
-                            
-                        return ctx.ValidateCredentials(email, password);
+                        // Denenecek kullanıcı adları
+                        var usernamesToTry = new List<string> { email };
+                        if (email.Contains("@"))
+                        {
+                            usernamesToTry.Add(email.Split('@')[0]);
+                        }
+
+                        foreach (var uname in usernamesToTry)
+                        {
+                            try 
+                            {
+                                // SSL (636) kullanırken Hostname (aile.bulutu) kullanmak 
+                                // sertifika doğrulaması için IP'den daha güvenlidir.
+                                using var ctx = new PrincipalContext(
+                                    ContextType.Domain,
+                                    domain.Name,
+                                    domain.Container,
+                                    options,
+                                    uname, // Try binding with uname instead of strictly email
+                                    password);
+                                    
+                                if (ctx.ValidateCredentials(uname, password))
+                                    return true;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[LDAP_ERROR] Context/Validate failed for {uname} with options {options}: {ex.Message}");
+                                // Continue to the next username format
+                            }
+                        }
+                        
+                        return false;
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Console.WriteLine($"[LDAP_ERROR] AuthenticateAsync failed unexpectedly: {ex.Message}");
                         return false;
                     }
                 }, cts.Token);

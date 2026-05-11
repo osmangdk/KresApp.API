@@ -54,6 +54,33 @@ public class MinioStorageService : IFileStorageService
         return $"{protocol}://{_settings.Endpoint}/{_settings.BucketName}/{uniqueFileName}";
     }
 
+    public async Task<string> UploadFileToFolderAsync(Stream fileStream, string folder, string fileName, string contentType)
+    {
+        // Klasör adını temizle (özel karakterler yerine _ koy)
+        var safeFolder = System.Text.RegularExpressions.Regex.Replace(folder, @"[^\w\-]", "_");
+        var objectName = $"{safeFolder}/{Guid.NewGuid()}_{fileName}";
+
+        var beArgs = new BucketExistsArgs().WithBucket(_settings.BucketName);
+        bool found = await _minioClient.BucketExistsAsync(beArgs).ConfigureAwait(false);
+        if (!found)
+        {
+            var mbArgs = new MakeBucketArgs().WithBucket(_settings.BucketName);
+            await _minioClient.MakeBucketAsync(mbArgs).ConfigureAwait(false);
+        }
+
+        var putObjectArgs = new PutObjectArgs()
+            .WithBucket(_settings.BucketName)
+            .WithObject(objectName)
+            .WithStreamData(fileStream)
+            .WithObjectSize(fileStream.Length)
+            .WithContentType(contentType);
+
+        await _minioClient.PutObjectAsync(putObjectArgs).ConfigureAwait(false);
+
+        var protocol = _settings.UseSsl ? "https" : "http";
+        return $"{protocol}://{_settings.Endpoint}/{_settings.BucketName}/{objectName}";
+    }
+
     public async Task DeleteFileAsync(string fileUrl)
     {
         try
