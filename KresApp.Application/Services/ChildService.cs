@@ -31,9 +31,9 @@ public class ChildService
 
     public async Task<Guid> Create(CreateChildDto dto)
     {
-        var child = new Child(dto.Name, dto.ParentId, dto.ClassId, dto.BirthDate);
+        var child = new Child(dto.Name, dto.ParentId, dto.ClassId, dto.BirthDate, dto.TcKimlikNo);
         child.UpdateProfile(dto.Name, dto.BirthDate, dto.BloodType, dto.ClassId,
-                            dto.ParentName, dto.ParentPhone, dto.SecondaryPhone, null, null, null);
+                            dto.ParentName, dto.ParentPhone, dto.SecondaryPhone, null, null, null, dto.TcKimlikNo);
         await _repo.AddAsync(child);
         return child.Id;
     }

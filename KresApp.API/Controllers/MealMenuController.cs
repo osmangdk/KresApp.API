@@ -20,7 +20,7 @@ public class MealMenuController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateMealMenuDto dto)
     {
         await _service.CreateAsync(dto);
@@ -28,7 +28,7 @@ public class MealMenuController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateMealMenuDto dto)
     {
         try {
@@ -38,7 +38,7 @@ public class MealMenuController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);

@@ -20,7 +20,7 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateScheduleDto dto)
     {
         await _service.CreateAsync(dto);
@@ -28,7 +28,7 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateScheduleDto dto)
     {
         try {
@@ -38,7 +38,7 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);

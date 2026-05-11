@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -35,6 +37,7 @@ builder.Services.AddScoped<IVaccinationRepository, VaccinationRepository>();
 builder.Services.AddScoped<IChildHealthRepository, ChildHealthRepository>();
 builder.Services.AddScoped<IUserAccessRequestRepository, UserAccessRequestRepository>();
 builder.Services.AddScoped<IEnrollmentRequestRepository, EnrollmentRequestRepository>();
+builder.Services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ILdapService, LdapService>();
@@ -77,6 +80,7 @@ builder.Services.AddScoped<VaccinationService>();
 builder.Services.AddScoped<ChildHealthService>();
 builder.Services.AddScoped<UserAccessRequestService>();
 builder.Services.AddScoped<EnrollmentService>();
+builder.Services.AddScoped<SystemSettingService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>
@@ -263,6 +267,20 @@ using (var scope = app.Services.CreateScope())
             ADD COLUMN IF NOT EXISTS ""SpouseIsWorking""    boolean,
             ADD COLUMN IF NOT EXISTS ""SpouseWorkplace""    text,
             ADD COLUMN IF NOT EXISTS ""SpouseWorkplaceHasDaycare"" boolean;
+
+        -- SystemSettings tablosu oluşturma
+        CREATE TABLE IF NOT EXISTS ""SystemSettings"" (
+            ""Id""                      uuid        PRIMARY KEY DEFAULT uuid_generate_v4(),
+            ""IsPreEnrollmentActive""   boolean     NOT NULL DEFAULT true,
+            ""PreEnrollmentStartDate""  timestamptz,
+            ""PreEnrollmentEndDate""    timestamptz,
+            ""UpdatedAt""               timestamptz NOT NULL DEFAULT now()
+        );
+
+        -- İlk ayar satırını ekle (eğer yoksa)
+        INSERT INTO ""SystemSettings"" (""Id"", ""IsPreEnrollmentActive"", ""UpdatedAt"")
+        SELECT uuid_generate_v4(), true, now()
+        WHERE NOT EXISTS (SELECT 1 FROM ""SystemSettings"");
 
         -- Children tablosuna yeni alanlar ekle
         ALTER TABLE ""Children""

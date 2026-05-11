@@ -35,7 +35,7 @@ public class DailyReportController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateDailyReportDto dto)
     {
         try {
@@ -45,7 +45,7 @@ public class DailyReportController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateDailyReportDto dto)
     {
         try {

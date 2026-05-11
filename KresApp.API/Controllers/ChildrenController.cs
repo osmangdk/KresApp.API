@@ -44,7 +44,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> AddChild([FromBody] CreateChildDto dto)
     {
         var id = await _service.Create(dto);
@@ -52,7 +52,7 @@ public class ChildrenController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> UpdateChild(Guid id, [FromBody] UpdateChildDto dto)
     {
         try {

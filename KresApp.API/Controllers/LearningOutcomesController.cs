@@ -25,7 +25,7 @@ public class LearningOutcomesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateLearningOutcomeDto dto)
     {
         var result = await _service.CreateAsync(dto);
@@ -33,7 +33,7 @@ public class LearningOutcomesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateLearningOutcomeDto dto)
     {
         try { await _service.UpdateAsync(id, dto); return NoContent(); }
@@ -41,7 +41,7 @@ public class LearningOutcomesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);

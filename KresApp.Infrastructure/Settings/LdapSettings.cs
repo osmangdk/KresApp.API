@@ -3,6 +3,7 @@ namespace KresApp.Infrastructure.Settings;
 public class LdapSettings
 {
     public bool Enabled { get; set; }
+    public bool MockMode { get; set; }
     public AdDomainSetting Domains { get; set; } = new();
 }
 

@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<ChildHealthRecord> ChildHealthRecords => Set<ChildHealthRecord>();
     public DbSet<UserAccessRequest> UserAccessRequests => Set<UserAccessRequest>();
     public DbSet<EnrollmentRequest> EnrollmentRequests => Set<EnrollmentRequest>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -278,6 +279,13 @@ public class AppDbContext : DbContext
             eb.Property(x => x.SpouseWorkplaceHasDaycare).HasColumnName("SpouseWorkplaceHasDaycare");
 
             eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<SystemSetting>(eb => {
+            eb.ToTable("SystemSettings");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
         });
     }
 }

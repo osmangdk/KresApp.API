@@ -21,7 +21,20 @@ public class LdapService : ILdapService
     {
         if (!_settings.Enabled) return false;
 
-        // Toplam işlem süresi (VPN/LDAPS yavaştır)
+        // Dinamik erişilebilirlik kontrolü (DNS ve TCP üzerinden)
+        bool isReachable = await IsReachableAsync();
+
+        if (!isReachable)
+        {
+            if (_settings.MockMode)
+            {
+                // Sunucuya erişilemiyor ve MockMode açık: Geliştirme bypass moduna geç.
+                return true; 
+            }
+            throw new Exception("LDAP sunucusuna erişilemiyor. Kurum içinden bağlandığınızdan veya VPN'in açık olduğundan emin olun.");
+        }
+
+        // Sunucuya erişilebiliyor: Gerçek LDAP doğrulaması yap.
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(LdapTimeoutSeconds));
 
         try
@@ -105,6 +118,18 @@ public class LdapService : ILdapService
     public async Task<LdapUserInfo?> GetUserInfoAsync(string email)
     {
         if (!_settings.Enabled) return null;
+
+        bool isReachable = await IsReachableAsync();
+
+        if (!isReachable)
+        {
+            if (_settings.MockMode)
+            {
+                // Kurum dışı bypass
+                return new LdapUserInfo { Name = email.Split('@')[0], Email = email, Phone = "5551234567" };
+            }
+            return null;
+        }
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(LdapTimeoutSeconds));
 

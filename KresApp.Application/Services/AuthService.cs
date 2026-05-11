@@ -112,51 +112,53 @@ public class AuthService
     {
         var user = await _users.GetByEmail(email);
 
-        // 1. LDAP denemesi
+        // 1. LDAP denemesi (Erişilebilirlik ve E-posta kontrolü)
         bool isCorporate = email.Contains("@aile.gov.tr") || email.Contains("@aile.bulutu");
         bool isReachable = await _ldap.IsReachableAsync();
 
-        if (!isReachable && isCorporate)
+        // LDAP sunucusuna ulaşılabiliyorsa doğrulamayı dene
+        if (isReachable)
         {
-            // Kurumsal email ama sunucuya ulaşılamıyor -> Büyük ihtimalle VPN kapalı
-            throw new Exception("Kurum ağına (aile.bulutu) ulaşılamadı. Lütfen VPN bağlantınızın aktif olduğundan emin olun.");
+            var ldapResult = await ValidateLdapWithMfaAsync(email, password);
+            
+            if (ldapResult.Success)
+            {
+                if (user == null)
+                {
+                    // LDAP başarılı ama sistemde kayıt yok
+                    _cache.Set($"ldap_verified_{email}", true, TimeSpan.FromMinutes(10));
+                    LdapUserInfo? info = null;
+                    try { info = await _ldap.GetUserInfoAsync(email); } catch { }
+
+                    return new LoginResult(Status: "not_registered", Token: null, LdapName: info?.Name ?? email);
+                }
+
+                if (ldapResult.RequiresOtp)
+                {
+                    return new LoginResult("requires_otp", null, null);
+                }
+
+                // LDAP başarılı ve kullanıcı sistemde var
+                return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
+            }
         }
 
-        var ldapResult = await ValidateLdapWithMfaAsync(email, password);
-        
-        if (ldapResult.Success)
-        {
-            if (user == null)
-            {
-                // LDAP doğrulandı ama sistemde hesabı yok → talep ekranına yönlendir
-                // Güvenlik için 10 dakikalık bir "LDAP Onaylı" işareti koyuyoruz
-                _cache.Set($"ldap_verified_{email}", true, TimeSpan.FromMinutes(10));
-
-                LdapUserInfo? info = null;
-                try { info = await _ldap.GetUserInfoAsync(email); } catch { }
-
-                return new LoginResult(
-                    Status: "not_registered",
-                    Token: null,
-                    LdapName: info?.Name ?? email
-                );
-            }
-
-            if (ldapResult.RequiresOtp)
-            {
-                return new LoginResult("requires_otp", null, null);
-            }
-
-            // SMS gerekmiyorsa (VPN) doğrudan giriş yap ve token dön
-            return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
-        }
-
-        // 2. LDAP başarısız veya devre dışı — yerel veritabanı kontrolü
+        // 2. LDAP başarısız veya sunucuya ulaşılamıyor — Yerel veritabanı kontrolü
         if (user == null)
+        {
+            // Eğer sunucuya ulaşılamadığı için buraya geldiysek ve kurumsal mail ise bilgilendir
+            if (!isReachable && isCorporate)
+                throw new Exception("Kurum ağına ulaşılamadı ve yerel kullanıcı bulunamadı. Lütfen VPN kontrolü yapın.");
+            
             throw new Exception("E-posta veya şifre hatalı.");
+        }
 
+        // Kullanıcı yerel veritabanında var, şifresini kontrol et
         if (user.PasswordHash == "LDAP_USER")
-            throw new Exception("Kurumsal hesabınızla giriş yapılamadı. Ağa bağlı olduğunuzdan emin olun.");
+        {
+             // Bu kullanıcı sadece LDAP ile girebilir olarak işaretlenmiş ama LDAP doğrulaması yukarıda geçemedi
+             throw new Exception("Kurumsal hesabınız doğrulanamadı. Lütfen bilgilerinizi veya ağ bağlantınızı kontrol edin.");
+        }
 
         var ok = _hasher.Verify(password, user.PasswordHash);
         if (!ok)

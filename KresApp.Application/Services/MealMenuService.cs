@@ -14,20 +14,25 @@ public class MealMenuService
         var items = await _repo.GetAllAsync();
         return items.Select(x => new MealMenuDto
         {
-            Id = x.Id, Day = x.Day, Breakfast = x.Breakfast, Lunch = x.Lunch, Snack = x.Snack
+            Id = x.Id, 
+            Day = x.Day, 
+            Date = x.Date,
+            Breakfast = x.Breakfast, 
+            Lunch = x.Lunch, 
+            Snack = x.Snack
         }).ToList();
     }
 
     public async Task CreateAsync(CreateMealMenuDto dto)
     {
-        await _repo.AddAsync(new MealMenu(dto.Day, dto.Breakfast, dto.Lunch, dto.Snack));
+        await _repo.AddAsync(new MealMenu(dto.Day, dto.Date, dto.Breakfast, dto.Lunch, dto.Snack));
     }
 
     public async Task UpdateAsync(Guid id, CreateMealMenuDto dto)
     {
         var menu = await _repo.GetByIdAsync(id);
         if (menu == null) throw new Exception("Menu not found");
-        menu.Update(dto.Day, dto.Breakfast, dto.Lunch, dto.Snack);
+        menu.Update(dto.Day, dto.Date, dto.Breakfast, dto.Lunch, dto.Snack);
         await _repo.UpdateAsync(menu);
     }
 

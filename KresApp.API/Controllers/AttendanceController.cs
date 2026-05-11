@@ -41,7 +41,7 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPost("bulk")]
-    [Authorize(Roles = "Admin,Teacher")]
+    [Authorize(Roles = "Admin,Teacher,SuperAdmin")]
     public async Task<IActionResult> BulkCreate([FromBody] CreateBulkAttendanceDto dto)
     {
         await _service.CreateBulkAsync(dto);
