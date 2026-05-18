@@ -38,6 +38,8 @@ builder.Services.AddScoped<IChildHealthRepository, ChildHealthRepository>();
 builder.Services.AddScoped<IUserAccessRequestRepository, UserAccessRequestRepository>();
 builder.Services.AddScoped<IEnrollmentRequestRepository, EnrollmentRequestRepository>();
 builder.Services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
+builder.Services.AddScoped<IAgeGroupRepository, AgeGroupRepository>();
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ILdapService, LdapService>();
@@ -81,6 +83,8 @@ builder.Services.AddScoped<ChildHealthService>();
 builder.Services.AddScoped<UserAccessRequestService>();
 builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SystemSettingService>();
+builder.Services.AddScoped<AgeGroupService>();
+builder.Services.AddScoped<LeaveRequestService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>
@@ -282,9 +286,40 @@ using (var scope = app.Services.CreateScope())
         SELECT uuid_generate_v4(), true, now()
         WHERE NOT EXISTS (SELECT 1 FROM ""SystemSettings"");
 
+        CREATE TABLE IF NOT EXISTS ""LeaveRequests"" (
+            ""Id""                  uuid        NOT NULL DEFAULT uuid_generate_v4(),
+            ""ChildId""             uuid        NOT NULL,
+            ""StartDate""           date        NOT NULL,
+            ""EndDate""             date        NOT NULL,
+            ""Reason""              text        NOT NULL,
+            ""Status""              integer     NOT NULL DEFAULT 0,
+            ""CreatedAt""           timestamptz NOT NULL DEFAULT now(),
+            ""ApprovedByUserId""    uuid,
+            ""AdminNote""           text,
+            CONSTRAINT ""PK_LeaveRequests"" PRIMARY KEY (""Id"")
+        );
+
         -- Children tablosuna yeni alanlar ekle
         ALTER TABLE ""Children""
             ADD COLUMN IF NOT EXISTS ""TcKimlikNo""      text;
+
+        -- AgeGroups tablosu oluşturma
+        CREATE TABLE IF NOT EXISTS ""AgeGroups"" (
+            ""Id""          uuid        PRIMARY KEY DEFAULT uuid_generate_v4(),
+            ""Name""        text        NOT NULL,
+            ""Quota""       integer     NOT NULL DEFAULT 0,
+            ""Description"" text,
+            ""CreatedAt""   timestamptz NOT NULL DEFAULT now()
+        );
+
+        -- LearningOutcomes tablosuna AgeGroupId ve ClassId ekle
+        ALTER TABLE ""LearningOutcomes""
+            ADD COLUMN IF NOT EXISTS ""AgeGroupId""   uuid REFERENCES ""AgeGroups""(""Id""),
+            ADD COLUMN IF NOT EXISTS ""ClassId""      uuid REFERENCES ""Classes""(""Id"");
+
+        -- Classes tablosuna AgeGroupId ekle
+        ALTER TABLE ""Classes""
+            ADD COLUMN IF NOT EXISTS ""AgeGroupId""   uuid REFERENCES ""AgeGroups""(""Id"");
 
         -- Users tablosuna yeni alanlar ekle
         ALTER TABLE ""Users""

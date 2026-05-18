@@ -7,6 +7,10 @@ public class LearningOutcomeDto
     public int Year { get; set; }
     public string MonthName { get; set; } = null!;
     public string Theme { get; set; } = null!;
+    public Guid? AgeGroupId { get; set; }
+    public string? AgeGroupName { get; set; }
+    public Guid? ClassId { get; set; }
+    public string? ClassName { get; set; }
     public List<string> Outcomes { get; set; } = new();
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -17,6 +21,8 @@ public class CreateLearningOutcomeDto
     public int Month { get; set; }
     public int Year { get; set; }
     public string Theme { get; set; } = null!;
+    public Guid? AgeGroupId { get; set; }
+    public Guid? ClassId { get; set; }
     public List<string> Outcomes { get; set; } = new();
     public string? Description { get; set; }
 }

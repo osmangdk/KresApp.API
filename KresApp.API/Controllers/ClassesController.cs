@@ -30,7 +30,7 @@ public class ClassesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Create([FromBody] CreateClassDto dto)
     {
         await _service.CreateAsync(dto);
@@ -38,7 +38,7 @@ public class ClassesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateClassDto dto)
     {
         try {
@@ -48,7 +48,7 @@ public class ClassesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);

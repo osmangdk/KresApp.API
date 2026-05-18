@@ -16,12 +16,12 @@ public class ClassRepository : IClassRepository
 
     public async Task<List<Class>> GetAllAsync()
     {
-        return await _db.Classes.OrderBy(x => x.Name).ToListAsync();
+        return await _db.Classes.Include(x => x.AgeGroup).OrderBy(x => x.Name).ToListAsync();
     }
 
     public async Task<Class?> GetByIdAsync(Guid id)
     {
-        return await _db.Classes.FirstOrDefaultAsync(x => x.Id == id);
+        return await _db.Classes.Include(x => x.AgeGroup).FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task AddAsync(Class classEntity)

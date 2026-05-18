@@ -17,7 +17,9 @@ public class ClassService
         {
             Id = x.Id,
             Name = x.Name,
-            TeacherId = x.TeacherId
+            TeacherId = x.TeacherId,
+            AgeGroupId = x.AgeGroupId,
+            AgeGroupName = x.AgeGroup?.Name
         }).ToList();
     }
 
@@ -29,13 +31,19 @@ public class ClassService
         {
             Id = x.Id,
             Name = x.Name,
-            TeacherId = x.TeacherId
+            TeacherId = x.TeacherId,
+            AgeGroupId = x.AgeGroupId,
+            AgeGroupName = x.AgeGroup?.Name
         };
     }
 
     public async Task CreateAsync(CreateClassDto dto)
     {
-        var classEntity = new Class(dto.Name, dto.TeacherId);
+        var all = await _repo.GetAllAsync();
+        if (all.Any(c => c.TeacherId == dto.TeacherId))
+            throw new Exception("Bu öğretmen zaten bir sınıfa atanmış.");
+
+        var classEntity = new Class(dto.Name, dto.TeacherId, dto.AgeGroupId);
         await _repo.AddAsync(classEntity);
     }
 
@@ -44,7 +52,11 @@ public class ClassService
         var classEntity = await _repo.GetByIdAsync(id);
         if (classEntity == null) throw new Exception("Sınıf bulunamadı.");
 
-        classEntity.Update(dto.Name, dto.TeacherId);
+        var all = await _repo.GetAllAsync();
+        if (all.Any(c => c.TeacherId == dto.TeacherId && c.Id != id))
+            throw new Exception("Bu öğretmen zaten başka bir sınıfa atanmış.");
+
+        classEntity.Update(dto.Name, dto.TeacherId, dto.AgeGroupId);
         await _repo.UpdateAsync(classEntity);
     }
 

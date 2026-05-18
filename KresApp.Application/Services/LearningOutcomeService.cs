@@ -36,6 +36,8 @@ public class LearningOutcomeService
             Month = dto.Month,
             Year = dto.Year,
             Theme = dto.Theme,
+            AgeGroupId = dto.AgeGroupId,
+            ClassId = dto.ClassId,
             Outcomes = dto.Outcomes,
             Description = dto.Description,
             CreatedAt = DateTime.UtcNow
@@ -53,6 +55,8 @@ public class LearningOutcomeService
         entity.Month = dto.Month;
         entity.Year = dto.Year;
         entity.Theme = dto.Theme;
+        entity.AgeGroupId = dto.AgeGroupId;
+        entity.ClassId = dto.ClassId;
         entity.Outcomes = dto.Outcomes;
         entity.Description = dto.Description;
 
@@ -72,6 +76,10 @@ public class LearningOutcomeService
         Year = entity.Year,
         MonthName = TurkishMonths[entity.Month - 1],
         Theme = entity.Theme,
+        AgeGroupId = entity.AgeGroupId,
+        AgeGroupName = entity.AgeGroup?.Name,
+        ClassId = entity.ClassId,
+        ClassName = entity.Class?.Name,
         Outcomes = entity.Outcomes,
         Description = entity.Description,
         CreatedAt = entity.CreatedAt

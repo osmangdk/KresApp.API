@@ -5,10 +5,13 @@ public class ClassDto
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
     public Guid TeacherId { get; set; }
+    public Guid? AgeGroupId { get; set; }
+    public string? AgeGroupName { get; set; }
 }
 
 public class CreateClassDto
 {
     public string Name { get; set; } = null!;
     public Guid TeacherId { get; set; }
+    public Guid? AgeGroupId { get; set; }
 }

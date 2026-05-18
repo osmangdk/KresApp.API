@@ -28,6 +28,8 @@ public class AppDbContext : DbContext
     public DbSet<UserAccessRequest> UserAccessRequests => Set<UserAccessRequest>();
     public DbSet<EnrollmentRequest> EnrollmentRequests => Set<EnrollmentRequest>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<AgeGroup> AgeGroups => Set<AgeGroup>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -153,6 +155,7 @@ public class AppDbContext : DbContext
             eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
             eb.Property(x => x.Name).IsRequired();
             eb.Property(x => x.TeacherId).IsRequired();
+            eb.HasOne(x => x.AgeGroup).WithMany(a => a.Classes).HasForeignKey(x => x.AgeGroupId);
         });
 
         modelBuilder.Entity<ChildAllergy>(eb => {
@@ -200,6 +203,8 @@ public class AppDbContext : DbContext
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
             eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.AgeGroup).WithMany(a => a.LearningOutcomes).HasForeignKey(x => x.AgeGroupId);
+            eb.HasOne(x => x.Class).WithMany().HasForeignKey(x => x.ClassId);
         });
 
         modelBuilder.Entity<Medication>(eb => {
@@ -286,6 +291,23 @@ public class AppDbContext : DbContext
             eb.HasKey(x => x.Id);
             eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
             eb.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        });
+
+        modelBuilder.Entity<AgeGroup>(eb => {
+            eb.ToTable("AgeGroups");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.Name).IsRequired();
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<LeaveRequest>(eb => {
+            eb.ToTable("LeaveRequests");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
+            eb.HasOne(x => x.ApprovedByUser).WithMany().HasForeignKey(x => x.ApprovedByUserId);
         });
     }
 }

@@ -12,17 +12,17 @@ public class LearningOutcomeRepository : ILearningOutcomeRepository
 
     public async Task<List<LearningOutcome>> GetAllAsync(int? year = null)
     {
-        var query = _db.LearningOutcomes.AsQueryable();
+        var query = _db.LearningOutcomes.Include(x => x.Class).AsQueryable();
         if (year.HasValue)
             query = query.Where(x => x.Year == year.Value);
         return await query.OrderBy(x => x.Year).ThenBy(x => x.Month).ToListAsync();
     }
 
     public async Task<LearningOutcome?> GetByMonthYearAsync(int month, int year)
-        => await _db.LearningOutcomes.FirstOrDefaultAsync(x => x.Month == month && x.Year == year);
+        => await _db.LearningOutcomes.Include(x => x.Class).FirstOrDefaultAsync(x => x.Month == month && x.Year == year);
 
     public async Task<LearningOutcome?> GetByIdAsync(Guid id)
-        => await _db.LearningOutcomes.FindAsync(id);
+        => await _db.LearningOutcomes.Include(x => x.Class).FirstOrDefaultAsync(x => x.Id == id);
 
     public async Task AddAsync(LearningOutcome outcome)
     {
