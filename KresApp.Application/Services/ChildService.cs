@@ -138,6 +138,8 @@ public class ChildService
         {
             Id = child.Id,
             Name = child.Name,
+            TcNo = child.TcKimlikNo,
+            Status = "Active",
             ParentId = child.ParentId,
             BirthDate = child.BirthDate,
             ClassId = child.ClassId,

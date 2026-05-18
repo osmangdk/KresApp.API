@@ -110,10 +110,30 @@ public class AuthService
     /// </summary>
     public async Task<LoginResult> Login(string email, string password)
     {
-        var user = await _users.GetByEmail(email);
+        bool isCorporate = email.Contains("@aile.gov.tr") || email.Contains("@aile.bulutu");
+        bool.TryParse(_configuration["Ldap:MockMode"], out bool mockMode);
+
+        if (mockMode && isCorporate)
+        {
+            var user = await _users.GetByEmail(email);
+            if (user == null)
+            {
+                throw new Exception("Kurumsal kullanıcı kaydınız sistemde bulunamadı. Lütfen yöneticinizle iletişime geçin.");
+            }
+            
+            // Eğer veritabanında varsa şifreyi kontrol edelim veya mock olarak doğrudan geçirelim.
+            if (user.PasswordHash != "LDAP_USER")
+            {
+                var isPasswordValid = _hasher.Verify(password, user.PasswordHash);
+                if (!isPasswordValid) throw new Exception("E-posta veya şifre hatalı.");
+            }
+
+            return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
+        }
+
+        var userDB = await _users.GetByEmail(email);
 
         // 1. LDAP denemesi (Erişilebilirlik ve E-posta kontrolü)
-        bool isCorporate = email.Contains("@aile.gov.tr") || email.Contains("@aile.bulutu");
         bool isReachable = await _ldap.IsReachableAsync();
 
         // LDAP sunucusuna ulaşılabiliyorsa doğrulamayı dene
@@ -123,7 +143,7 @@ public class AuthService
             
             if (ldapResult.Success)
             {
-                if (user == null)
+                if (userDB == null)
                 {
                     // LDAP başarılı ama sistemde kayıt yok
                     _cache.Set($"ldap_verified_{email}", true, TimeSpan.FromMinutes(10));
@@ -139,12 +159,12 @@ public class AuthService
                 }
 
                 // LDAP başarılı ve kullanıcı sistemde var
-                return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
+                return new LoginResult("success", _jwt.Generate(userDB.Id, userDB.Role.ToString(), userDB.Email), null, userDB.AccountStatus.ToString());
             }
         }
 
         // 2. LDAP başarısız veya sunucuya ulaşılamıyor — Yerel veritabanı kontrolü
-        if (user == null)
+        if (userDB == null)
         {
             // Eğer sunucuya ulaşılamadığı için buraya geldiysek ve kurumsal mail ise bilgilendir
             if (!isReachable && isCorporate)
@@ -154,17 +174,17 @@ public class AuthService
         }
 
         // Kullanıcı yerel veritabanında var, şifresini kontrol et
-        if (user.PasswordHash == "LDAP_USER")
+        if (userDB.PasswordHash == "LDAP_USER")
         {
              // Bu kullanıcı sadece LDAP ile girebilir olarak işaretlenmiş ama LDAP doğrulaması yukarıda geçemedi
              throw new Exception("Kurumsal hesabınız doğrulanamadı. Lütfen bilgilerinizi veya ağ bağlantınızı kontrol edin.");
         }
 
-        var ok = _hasher.Verify(password, user.PasswordHash);
+        var ok = _hasher.Verify(password, userDB.PasswordHash);
         if (!ok)
             throw new Exception("E-posta veya şifre hatalı.");
 
-        return new LoginResult("success", _jwt.Generate(user.Id, user.Role.ToString(), user.Email), null, user.AccountStatus.ToString());
+        return new LoginResult("success", _jwt.Generate(userDB.Id, userDB.Role.ToString(), userDB.Email), null, userDB.AccountStatus.ToString());
     }
 
     public async Task<string> VerifyOtp(string email, string code)

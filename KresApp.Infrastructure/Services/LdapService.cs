@@ -20,17 +20,13 @@ public class LdapService : ILdapService
     public async Task<bool> AuthenticateAsync(string email, string password)
     {
         if (!_settings.Enabled) return false;
+        if (_settings.MockMode) return true; // Geliştirme bypass modu
 
         // Dinamik erişilebilirlik kontrolü (DNS ve TCP üzerinden)
         bool isReachable = await IsReachableAsync();
 
         if (!isReachable)
         {
-            if (_settings.MockMode)
-            {
-                // Sunucuya erişilemiyor ve MockMode açık: Geliştirme bypass moduna geç.
-                return true; 
-            }
             throw new Exception("LDAP sunucusuna erişilemiyor. Kurum içinden bağlandığınızdan veya VPN'in açık olduğundan emin olun.");
         }
 
@@ -195,6 +191,7 @@ public class LdapService : ILdapService
     public async Task<bool> IsReachableAsync()
     {
         if (!_settings.Enabled) return false;
+        if (_settings.MockMode) return true; // Geliştirme bypass modu
 
         try
         {
