@@ -8,6 +8,11 @@ public class DashboardStatsDto
     public int PendingPayments { get; set; }
     public int OverduePayments { get; set; }
     public int TotalStaff { get; set; }
+    public int TotalTeachers { get; set; }
+    public int TotalParents { get; set; }
+    public int TotalClasses { get; set; }
+    public int PendingEnrollments { get; set; }
+    public int PendingAccessRequests { get; set; }
     public WeeklyAttendanceDto WeeklyAttendance { get; set; } = new();
 }
 

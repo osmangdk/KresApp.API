@@ -10,13 +10,26 @@ public class DashboardService
     private readonly IPaymentRepository _paymentRepo;
     private readonly IAttendanceRepository _attendanceRepo;
     private readonly IUserRepository _userRepo;
+    private readonly IClassRepository _classRepo;
+    private readonly IEnrollmentRequestRepository _enrollmentRepo;
+    private readonly IUserAccessRequestRepository _accessRequestRepo;
 
-    public DashboardService(IChildRepository childRepo, IPaymentRepository paymentRepo, IAttendanceRepository attendanceRepo, IUserRepository userRepo)
+    public DashboardService(
+        IChildRepository childRepo,
+        IPaymentRepository paymentRepo,
+        IAttendanceRepository attendanceRepo,
+        IUserRepository userRepo,
+        IClassRepository classRepo,
+        IEnrollmentRequestRepository enrollmentRepo,
+        IUserAccessRequestRepository accessRequestRepo)
     {
         _childRepo = childRepo;
         _paymentRepo = paymentRepo;
         _attendanceRepo = attendanceRepo;
         _userRepo = userRepo;
+        _classRepo = classRepo;
+        _enrollmentRepo = enrollmentRepo;
+        _accessRequestRepo = accessRequestRepo;
     }
 
     public async Task<DashboardStatsDto> GetStatsAsync(Guid userId, string role)
@@ -45,7 +58,19 @@ public class DashboardService
 
         var teachers = await _userRepo.GetByRoleAsync(UserRole.Teacher);
         var admins = await _userRepo.GetByRoleAsync(UserRole.Admin);
-        int totalStaff = teachers.Count() + admins.Count();
+        var parents = await _userRepo.GetByRoleAsync(UserRole.Parent);
+        int totalTeachers = teachers.Count();
+        int totalParents = parents.Count();
+        int totalStaff = totalTeachers + admins.Count();
+
+        var classes = await _classRepo.GetAllAsync();
+        int totalClasses = classes.Count;
+
+        var pendingEnrollmentsList = await _enrollmentRepo.GetPendingAsync();
+        int pendingEnrollments = pendingEnrollmentsList.Count;
+
+        var pendingAccessList = await _accessRequestRepo.GetAllPendingAsync();
+        int pendingAccessRequests = pendingAccessList.Count;
 
         // Weekly Attendance Calculation
         var weeklyAttendance = new WeeklyAttendanceDto();
@@ -81,6 +106,11 @@ public class DashboardService
             PendingPayments = pendingPayments.Count,
             OverduePayments = overduePayments.Count,
             TotalStaff = totalStaff,
+            TotalTeachers = totalTeachers,
+            TotalParents = totalParents,
+            TotalClasses = totalClasses,
+            PendingEnrollments = pendingEnrollments,
+            PendingAccessRequests = pendingAccessRequests,
             WeeklyAttendance = weeklyAttendance
         };
     }
