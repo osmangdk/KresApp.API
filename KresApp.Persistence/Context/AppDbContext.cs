@@ -30,6 +30,7 @@ public class AppDbContext : DbContext
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<AgeGroup> AgeGroups => Set<AgeGroup>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<MeetingRequest> MeetingRequests => Set<MeetingRequest>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -308,6 +309,16 @@ public class AppDbContext : DbContext
             eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId);
             eb.HasOne(x => x.ApprovedByUser).WithMany().HasForeignKey(x => x.ApprovedByUserId);
+        });
+
+        modelBuilder.Entity<MeetingRequest>(eb => {
+            eb.ToTable("MeetingRequests");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId).OnDelete(DeleteBehavior.Restrict);
+            eb.HasOne(x => x.Parent).WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
+            eb.HasOne(x => x.Teacher).WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

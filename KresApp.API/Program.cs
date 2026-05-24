@@ -40,6 +40,7 @@ builder.Services.AddScoped<IEnrollmentRequestRepository, EnrollmentRequestReposi
 builder.Services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
 builder.Services.AddScoped<IAgeGroupRepository, AgeGroupRepository>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+builder.Services.AddScoped<IMeetingRequestRepository, MeetingRequestRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ILdapService, LdapService>();
@@ -85,6 +86,7 @@ builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SystemSettingService>();
 builder.Services.AddScoped<AgeGroupService>();
 builder.Services.AddScoped<LeaveRequestService>();
+builder.Services.AddScoped<MeetingRequestService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>
@@ -297,6 +299,23 @@ using (var scope = app.Services.CreateScope())
             ""ApprovedByUserId""    uuid,
             ""AdminNote""           text,
             CONSTRAINT ""PK_LeaveRequests"" PRIMARY KEY (""Id"")
+        );
+
+        CREATE TABLE IF NOT EXISTS ""MeetingRequests"" (
+            ""Id""                  uuid        NOT NULL DEFAULT uuid_generate_v4(),
+            ""ChildId""             uuid        NOT NULL,
+            ""ParentId""            uuid        NOT NULL,
+            ""TeacherId""           uuid        NOT NULL,
+            ""PlannedDate""         timestamptz NOT NULL,
+            ""DurationMinutes""     integer     NOT NULL DEFAULT 30,
+            ""RequestNote""         text        NOT NULL,
+            ""AdminNote""           text,
+            ""MeetingNotes""        text,
+            ""AttachmentUrl""       text,
+            ""Status""              integer     NOT NULL DEFAULT 0,
+            ""CreatedAt""           timestamptz NOT NULL DEFAULT now(),
+            ""UpdatedAt""           timestamptz,
+            CONSTRAINT ""PK_MeetingRequests"" PRIMARY KEY (""Id"")
         );
 
         -- Children tablosuna yeni alanlar ekle
