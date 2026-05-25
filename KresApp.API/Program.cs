@@ -361,7 +361,7 @@ app.UseSwagger(c =>
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "KresApp API v1");
-    c.RoutePrefix = "swagger"; // Tarayıcıda doğrudan /swagger yazınca açılması için
+    c.RoutePrefix = "swagger";
 });
 
 app.MapControllers();
