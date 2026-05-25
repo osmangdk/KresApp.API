@@ -58,7 +58,8 @@ public class MeetingRequestsController : ControllerBase
     [Authorize(Roles = "Teacher,Admin,SuperAdmin")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveMeetingRequestDto dto)
     {
-        await _service.ApproveAsync(id, dto);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _service.ApproveAsync(id, dto, userId);
         return Ok(new { message = "Görüşme talebi onaylandı ve planlandı." });
     }
 
@@ -66,14 +67,16 @@ public class MeetingRequestsController : ControllerBase
     [Authorize(Roles = "Teacher,Admin,SuperAdmin")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] RejectMeetingRequestDto dto)
     {
-        await _service.RejectAsync(id, dto);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _service.RejectAsync(id, dto, userId);
         return Ok(new { message = "Görüşme talebi reddedildi." });
     }
 
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, [FromBody] string? note)
     {
-        await _service.CancelAsync(id, note);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _service.CancelAsync(id, note, userId);
         return Ok(new { message = "Görüşme iptal edildi." });
     }
 
@@ -81,7 +84,8 @@ public class MeetingRequestsController : ControllerBase
     [Authorize(Roles = "Teacher,Admin,SuperAdmin")]
     public async Task<IActionResult> Complete(Guid id, [FromBody] CompleteMeetingRequestDto dto)
     {
-        await _service.CompleteAsync(id, dto);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _service.CompleteAsync(id, dto, userId);
         return Ok(new { message = "Görüşme raporu girilerek tamamlandı." });
     }
 }
