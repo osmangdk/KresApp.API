@@ -1,19 +1,28 @@
+using KresApp.API.Swagger;
 using KresApp.Application.Interfaces;
 using KresApp.Application.Services;
 using KresApp.Infrastructure.Services;
 using KresApp.Infrastructure.Settings;
 using KresApp.Persistence.Context;
 using KresApp.Persistence.Repositories;
-using KresApp.API.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models; // Düzeltildi: OpenApi için doğru namespace
 using System.Text;
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ==========================================
+// 1. PORT AYARI (DOĞRU YER: builder.Build() öncesi)
+// ==========================================
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
+// DbContext ve Repositories
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
@@ -44,6 +53,7 @@ builder.Services.AddScoped<IMeetingRequestRepository, MeetingRequestRepository>(
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ILdapService, LdapService>();
+
 var minioSettings = builder.Configuration.GetSection("Minio").Get<MinioSettings>();
 if (minioSettings?.UseLocal == true)
 {
@@ -62,6 +72,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ISmsService, SmsService>();
 
+// Services
 builder.Services.AddScoped<ChildService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
@@ -88,6 +99,7 @@ builder.Services.AddScoped<AgeGroupService>();
 builder.Services.AddScoped<LeaveRequestService>();
 builder.Services.AddScoped<MeetingRequestService>();
 
+// Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>
 {
@@ -97,7 +109,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     if (string.IsNullOrWhiteSpace(jwtKey))
     {
-        throw new InvalidOperationException("Configuration value 'Jwt:Key' is not set or is empty. Please set Jwt:Key in configuration.");
+        throw new InvalidOperationException("Configuration value 'Jwt:Key' is not set or is empty.");
     }
     if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
     {
@@ -120,8 +132,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateLifetime = true,
         ValidIssuer = issuer,
         ValidAudience = audience,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -129,14 +140,14 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(o =>
     o.AddPolicy("all", p => p
-        .SetIsOriginAllowed(origin => true) // Yerel geliştirmede tüm originlere izin ver (port farkı için)
+        .SetIsOriginAllowed(origin => true)
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()));
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new OpenApiInfo { Title = "KresApp API", Version = "v1" });
@@ -155,20 +166,18 @@ builder.Services.AddSwaggerGen(opt =>
     opt.OperationFilter<JwtAuthorizeOperationFilter>();
 });
 
+// ==========================================
+// 2. BUILD PROSESSİ
+// ==========================================
 var app = builder.Build();
-// Railway'in verdiği portu dinlemesi için bu satırı ekleyin:
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
 
-// ── Startup: EnrollmentRequests tablosunu yoksa oluştur ──────────────────────
+// ── Startup: Tablo Oluşturma Scriptleri ──────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ""EnrollmentRequests"" (
             ""Id""                  uuid        NOT NULL DEFAULT uuid_generate_v4(),
-
-            -- Veli bilgileri
             ""ParentName""          text        NOT NULL,
             ""ParentEmail""         text        NOT NULL,
             ""ParentPhone""         text        NOT NULL,
@@ -177,27 +186,19 @@ using (var scope = app.Services.CreateScope())
             ""ParentJob""           text,
             ""ParentWorkAddress""   text,
             ""ParentHomeAddress""   text,
-
-            -- Baba bilgileri
             ""FatherName""          text,
             ""FatherPhone""         text,
             ""FatherJob""           text,
             ""FatherWorkAddress""   text,
             ""FatherTcKimlikNo""    text,
-
-            -- Çocuk bilgileri
             ""ChildFullName""       text        NOT NULL,
             ""ChildBirthDate""      date,
             ""ChildGender""         text,
             ""ChildBloodType""      text,
             ""ChildAllergies""      text,
-
-            -- Sağlık izleme formu (JSON)
             ""InfectiousDiseases""  text,
             ""ChronicDiseases""     text,
             ""OtherHealthNotes""    text,
-
-            -- Acil durum kişileri
             ""Emergency1Name""      text,
             ""Emergency1Relation""  text,
             ""Emergency1Phone""     text,
@@ -206,11 +207,7 @@ using (var scope = app.Services.CreateScope())
             ""Emergency2Relation""  text,
             ""Emergency2Phone""     text,
             ""Emergency2Address""   text,
-
-            -- İzinler
             ""MediaConsent""        boolean,
-
-            -- MinIO dosya URL'leri
             ""FolderPath""          text,
             ""ChildPhotoUrl""       text,
             ""MotherPhotoUrl""      text,
@@ -221,8 +218,6 @@ using (var scope = app.Services.CreateScope())
             ""CommitmentDocUrl""    text,
             ""MediaConsentDocUrl""  text,
             ""InstitutionIdDocUrl"" text,
-
-            -- Durum
             ""Notes""               text,
             ""Status""              integer     NOT NULL DEFAULT 0,
             ""AdminNote""           text,
@@ -232,7 +227,6 @@ using (var scope = app.Services.CreateScope())
             CONSTRAINT ""PK_EnrollmentRequests"" PRIMARY KEY (""Id"")
         );
 
-        -- Mevcut tabloyu güncelle (varsa eksik sütunları ekle)
         ALTER TABLE ""EnrollmentRequests""
             ADD COLUMN IF NOT EXISTS ""ParentJob""           text,
             ADD COLUMN IF NOT EXISTS ""ParentWorkAddress""   text,
@@ -277,7 +271,6 @@ using (var scope = app.Services.CreateScope())
             ADD COLUMN IF NOT EXISTS ""SpouseWorkplace""    text,
             ADD COLUMN IF NOT EXISTS ""SpouseWorkplaceHasDaycare"" boolean;
 
-        -- SystemSettings tablosu oluşturma
         CREATE TABLE IF NOT EXISTS ""SystemSettings"" (
             ""Id""                      uuid        PRIMARY KEY DEFAULT uuid_generate_v4(),
             ""IsPreEnrollmentActive""   boolean     NOT NULL DEFAULT true,
@@ -286,7 +279,6 @@ using (var scope = app.Services.CreateScope())
             ""UpdatedAt""               timestamptz NOT NULL DEFAULT now()
         );
 
-        -- İlk ayar satırını ekle (eğer yoksa)
         INSERT INTO ""SystemSettings"" (""Id"", ""IsPreEnrollmentActive"", ""UpdatedAt"")
         SELECT uuid_generate_v4(), true, now()
         WHERE NOT EXISTS (SELECT 1 FROM ""SystemSettings"");
@@ -321,11 +313,8 @@ using (var scope = app.Services.CreateScope())
             CONSTRAINT ""PK_MeetingRequests"" PRIMARY KEY (""Id"")
         );
 
-        -- Children tablosuna yeni alanlar ekle
-        ALTER TABLE ""Children""
-            ADD COLUMN IF NOT EXISTS ""TcKimlikNo""      text;
+        ALTER TABLE ""Children"" ADD COLUMN IF NOT EXISTS ""TcKimlikNo"" text;
 
-        -- AgeGroups tablosu oluşturma
         CREATE TABLE IF NOT EXISTS ""AgeGroups"" (
             ""Id""          uuid        PRIMARY KEY DEFAULT uuid_generate_v4(),
             ""Name""        text        NOT NULL,
@@ -334,37 +323,33 @@ using (var scope = app.Services.CreateScope())
             ""CreatedAt""   timestamptz NOT NULL DEFAULT now()
         );
 
-        -- LearningOutcomes tablosuna AgeGroupId ve ClassId ekle
         ALTER TABLE ""LearningOutcomes""
             ADD COLUMN IF NOT EXISTS ""AgeGroupId""   uuid REFERENCES ""AgeGroups""(""Id""),
             ADD COLUMN IF NOT EXISTS ""ClassId""      uuid REFERENCES ""Classes""(""Id"");
 
-        -- Classes tablosuna AgeGroupId ekle
-        ALTER TABLE ""Classes""
-            ADD COLUMN IF NOT EXISTS ""AgeGroupId""   uuid REFERENCES ""AgeGroups""(""Id"");
+        ALTER TABLE ""Classes"" ADD COLUMN IF NOT EXISTS ""AgeGroupId"" uuid REFERENCES ""AgeGroups""(""Id"");
 
-        -- Users tablosuna yeni alanlar ekle
         ALTER TABLE ""Users""
             ADD COLUMN IF NOT EXISTS ""TcKimlikNo""      text,
             ADD COLUMN IF NOT EXISTS ""AccountStatus""   integer NOT NULL DEFAULT 2;
     ");
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
+// ==========================================
+// 3. MIDDLEWARE YAPILANDIRMASI
+// ==========================================
 app.UseStaticFiles();
 app.UseCors("all");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseSwagger(c =>
-{
-    c.RouteTemplate = "swagger/{documentName}/swagger.json";
-});
-
+// Swagger Yapılandırması (Canlı ortam için optimize edildi)
+app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "KresApp API v1");
-    c.RoutePrefix = string.Empty;
+    // Göreceli (relative) path kullanımı proxy hatalarını önler
+    c.SwaggerEndpoint("swagger/v1/swagger.json", "KresApp API v1");
+    c.RoutePrefix = string.Empty; // Doğrudan ana domainde (/) açılsın
 });
 
 app.MapControllers();
