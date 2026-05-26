@@ -8,8 +8,7 @@ using KresApp.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
-using Microsoft.OpenApi.Models; // Düzeltildi: OpenApi için doğru namespace
+using Microsoft.OpenApi; 
 using System.Text;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
