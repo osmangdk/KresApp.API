@@ -156,6 +156,9 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 var app = builder.Build();
+// Railway'in verdiği portu dinlemesi için bu satırı ekleyin:
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
 
 // ── Startup: EnrollmentRequests tablosunu yoksa oluştur ──────────────────────
 using (var scope = app.Services.CreateScope())
