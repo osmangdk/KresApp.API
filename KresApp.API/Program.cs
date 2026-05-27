@@ -18,8 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 // 1. PORT AYARI (DOĞRU YER: builder.Build() öncesi)
 // ==========================================
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
 
 // DbContext ve Repositories
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -175,6 +178,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.ExecuteSqlRaw(@"
+        CREATE EXTENSION IF NOT EXISTS ""uuid-ossp"";
+
         CREATE TABLE IF NOT EXISTS ""EnrollmentRequests"" (
             ""Id""                  uuid        NOT NULL DEFAULT uuid_generate_v4(),
             ""ParentName""          text        NOT NULL,
