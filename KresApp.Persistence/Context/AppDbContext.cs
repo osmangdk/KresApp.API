@@ -31,6 +31,7 @@ public class AppDbContext : DbContext
     public DbSet<AgeGroup> AgeGroups => Set<AgeGroup>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<MeetingRequest> MeetingRequests => Set<MeetingRequest>();
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -319,6 +320,16 @@ public class AppDbContext : DbContext
             eb.HasOne(x => x.Child).WithMany().HasForeignKey(x => x.ChildId).OnDelete(DeleteBehavior.Restrict);
             eb.HasOne(x => x.Parent).WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
             eb.HasOne(x => x.Teacher).WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EmailLog>(eb => {
+            eb.ToTable("EmailLogs");
+            eb.HasKey(x => x.Id);
+            eb.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()");
+            eb.Property(x => x.ToEmail).IsRequired();
+            eb.Property(x => x.Subject).IsRequired();
+            eb.Property(x => x.Body).IsRequired();
+            eb.Property(x => x.SentAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
         });
     }
 }
